@@ -10,14 +10,15 @@ This guide tells an AI **exactly** what to do when implementing the **App Patter
 
 ---
 
-### 📁 Directory Layout (pre‑existing)
+### 📁 App Pattern Directory Layout
 
 ```
 / (current directory = app root)
-├── meta.json        # already exists – DO NOT touch
-├── .env.template    # exists – append variables if needed
-├── README.md        # exists – AI should not overwrite
 └── app/             # where the runnable code will live
+    ├── README.md    # application-specific documentation
+    ├── src/         # source code
+    │   └── index.js # entry point (example for Node.js)
+    └── package.json # runtime manifest (example for Node.js)
 ```
 
 ---
@@ -29,19 +30,12 @@ This guide tells an AI **exactly** what to do when implementing the **App Patter
    - Create the necessary runtime manifest (`package.json`, `pyproject.toml`, etc.) and a `src/` folder with an entry point (`index.js`, `main.py`, etc.).
    - Follow the runtime the user requests (Node.js, Python, etc.).
 
-2. **Modify `.env.template` _only_ if new environment variables are required**
+2. **Create a README.md inside the `app/` folder**
 
-   - Append **new** variable keys (leave values blank).
-   - Do **not** remove or rename existing keys.
-   - Example addition:
-
-     ```
-     # Added by AI for JWT secret
-     JWT_SECRET=
-     ```
-
-3. **Leave `meta.json` and `README.md` untouched.**
-4. **No Docker / CI / infra files** at this stage.
+   - Document what the application does
+   - Include setup and running instructions
+   - If the application requires environment variables, list them clearly in this README
+   - The user will handle environment setup manually
 
 ---
 
@@ -53,24 +47,22 @@ This guide tells an AI **exactly** what to do when implementing the **App Patter
    - Determine language & minimal dependencies.
    - Scaffold code under `app/` accordingly.
 
-3. While generating code, keep a list of any configuration values that should come from the environment.
+3. Create a comprehensive `app/README.md` that includes:
 
-   - After code generation, append those keys to `.env.template` (one per line, with comments if helpful).
+   - Application description
+   - Setup instructions
+   - Running instructions
+   - Any required environment variables (if applicable)
 
-4. Output a summary of actions:
-
-   - Created/updated files.
-   - Variables appended to `.env.template` (if any).
+4. Output a summary of actions taken.
 
 ---
 
 ## ✅ Completion Checklist
 
 - [ ] `app/` exists and contains runnable code (with `src/`, manifest, and entry point).
-- [ ] `.env.template` updated **only** with new variable keys (values remain blank).
-- [ ] `meta.json` and `README.md` remain unchanged.
-- [ ] No Docker/infra artifacts created.
-- [ ] AI returns a concise summary of what was done and any next steps for the user.
+- [ ] `app/README.md` created with application documentation and any required environment variables listed.
+- [ ] AI returns a concise summary of what was created.
 
 ---
 
