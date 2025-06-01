@@ -1,10 +1,12 @@
-## Application Code Generation Guide
+## Application Code Generation Guide - App Pattern
 
-This guide tells an AI **exactly** what to do when tasked with scaffolding an application. It supersedes previous instructions that required creating `meta.json`, `.env.template`, and `README.md`—those files are now **pre‑existing**.
+This guide tells an AI **exactly** what to do when implementing the **App Pattern** - scaffolding application code within the standardized directory structure. This is one of the five core patterns (app, docker, infra, local, scripts) defined in our system.
 
 **📄 Base Reference:** [base.md](https://github.com/ghostmind-dev/docs/blob/main/docs/app/base.md)
 
-> 🧠 **IMPORTANT:** The AI must read and understand `base.md` before generating or modifying any files.
+> 🧠 **IMPORTANT:** The AI must read and understand `base.md` first to learn about all five directory patterns, then return here for specific App Pattern implementation details.
+
+**📍 Pattern Focus:** This document covers the `app/` directory pattern only. For other patterns, refer to their respective documentation.
 
 ---
 
@@ -46,7 +48,7 @@ This guide tells an AI **exactly** what to do when tasked with scaffolding an ap
 ### 📝 Workflow for the AI
 
 1. Parse `base.md` for global conventions.
-2. Interpret the user’s description of the desired application.
+2. Interpret the user's description of the desired application.
 
    - Determine language & minimal dependencies.
    - Scaffold code under `app/` accordingly.
