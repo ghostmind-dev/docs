@@ -86,7 +86,7 @@ services:
       - ${LOCALHOST_SRC}/webui/tmp/app/backend/data:/app/backend/data
 ```
 
-## namein service in compose.yaml
+## naming convention for service in compose.yaml
 
 To avoid name conflict, always named service with a combinaison of 2 words with an underscore in betwwen
 
