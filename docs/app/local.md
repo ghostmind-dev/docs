@@ -96,6 +96,17 @@ services:
   // the rest
 ```
 
+## LOCAL
+
+Always include LOCAL argument in the docker build step
+
+```
+build:
+    dockerfile: ../webui/Dockerfile
+    args:
+    LOCAL: 'true'
+```
+
 # 8. Required meta.json Update
 
 After adding or modifying the local compose file, **update the `meta.json`** to include a `compose` object describing the local configuration. Always refer to the [`meta.json` schema](https://github.com/ghostmind-dev/config/blob/main/config/meta/schema.json) for the required structure and fields.
