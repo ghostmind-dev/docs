@@ -2,10 +2,6 @@
 
 This guide instructs an AI how to scaffold a _single_ application package for local execution. It complements the overarching principles defined in the base documentation:
 
-**📄 Base Reference:** [base.md](https://github.com/ghostmind-dev/docs/blob/main/docs/app/base.md)
-
-> 🧠 **IMPORTANT:** Read and understand `base.md` **before** generating any files. Everything below assumes that structure.
-
 ---
 
 ## 📁 Folder Context
