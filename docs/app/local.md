@@ -48,7 +48,7 @@ The `local/` directory defines the **Local Pattern**: the setup and configuratio
 
 ```yaml
 services:
-  pocket:
+  potion_next:
     container_name: ${APP}
     build:
       context: ${SRC}/potion/${APP}/app
@@ -71,7 +71,7 @@ services:
 
 ```yaml
 services:
-  webui:
+  webui_server:
     build:
       dockerfile: ../webui/Dockerfile
       args:
@@ -84,6 +84,16 @@ services:
       LOCALHOST_SRC: ${LOCALHOST_SRC}
     volumes:
       - ${LOCALHOST_SRC}/webui/tmp/app/backend/data:/app/backend/data
+```
+
+## namein service in compose.yaml
+
+To avoid name conflict, always named service with a combinaison of 2 words with an underscore in betwwen
+
+```yaml
+services:
+  potion_next:
+  // the rest
 ```
 
 # 8. Required meta.json Update
