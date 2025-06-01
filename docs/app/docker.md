@@ -1,7 +1,3 @@
-Perfect, got it! Here’s a draft for the **Docker Pattern documentation** based on your requirements, the [base.md](https://github.com/ghostmind-dev/docs/blob/main/docs/app/base.md), your example, and your workflow.
-
----
-
 ## Container Build Guide - Docker Pattern
 
 This guide tells an AI **exactly** what to do when implementing the **Docker Pattern**—creating container build definitions within the standardized directory structure. This is one of the five core patterns (app, docker, infra, local, scripts) defined in our system.
