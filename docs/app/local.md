@@ -49,21 +49,20 @@ The `local/` directory defines the **Local Pattern**: the setup and configuratio
 ```yaml
 services:
   potion_next:
-    container_name: ${APP}
+    container_name: potion
     build:
-      context: ${SRC}/potion/${APP}/app
-      dockerfile: ${SRC}/potion/${APP}/docker/Dockerfile
-      args:
+      context: ${SRC}/app
+      dockerfile: ${SRC}/${APP}
         LOCAL: 'true'
     env_file:
-      - ${SRC}/potion/${APP}/.env.local
+      - ${SRC}/.env.local
     ports:
       - ${PORT}:${PORT}
     environment:
       APP: ${APP}
       LOCALHOST_SRC: ${LOCALHOST_SRC}
     volumes:
-      - ${LOCALHOST_SRC}/potion/${APP}/app:/app/
+      - ${LOCALHOST_SRC}/app:/app/
     command: ['run', '--allow-all', '--watch', 'main.ts']
 ```
 
@@ -84,16 +83,6 @@ services:
       LOCALHOST_SRC: ${LOCALHOST_SRC}
     volumes:
       - ${LOCALHOST_SRC}/webui/tmp/app/backend/data:/app/backend/data
-```
-
-## naming convention for service in compose.yaml
-
-To avoid name conflict, always named service with a combinaison of 2 words with an underscore in betwwen
-
-```yaml
-services:
-  potion_next:
-  // the rest
 ```
 
 ## LOCAL

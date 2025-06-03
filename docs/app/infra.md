@@ -10,9 +10,9 @@ This guide tells an AI **exactly** what to do when implementing the **Infra Patt
 
 ---
 
-## Base Terraform Files - Required for Google Cloud Infrastructure
+## Base Terraform Files - Required for All Infrastructure
 
-For **every** Google Cloud infrastructure request, regardless of the specific Google Cloud service being created, the following three base files must be created exactly as specified:
+For **every** Terraform infrastructure request, regardless of the specific cloud provider or service being created, the following four base files must be created exactly as specified:
 
 ### 1. backend.tf
 
@@ -27,9 +27,8 @@ terraform {
 ```hcl
 terraform {
   required_providers {
-    google = {
-      source = "hashicorp/google"
-    }
+    # Provider will be specified based on client requirements
+    # Example: google, aws, azurerm, etc.
   }
   required_version = ">= 1.3.7"
 }
@@ -41,90 +40,33 @@ terraform {
 // blank
 ```
 
-> 🚨 **CRITICAL:** These files must be created **exactly** as shown above with no modifications. This ensures consistency across all Google Cloud infrastructure deployments.
+### 4. main.tf
+
+The main.tf file should include the core variables that are commonly needed across infrastructure deployments. The specific implementation will vary based on the cloud provider and services, but these variables should be considered:
+
+#### Required Variables (Always Include):
+
+- `PROJECT` - The project identifier
+- `ENVIRONMENT` - The deployment environment (dev, staging, prod, etc.)
+- `APP` - The application name
+
+#### Conditional Variables (Include When Applicable):
+
+- `IMAGE_DIGEST_DEFAULT` - Only required when deploying containerized applications with Docker images
+- `PORT` - Only required when the infrastructure needs to expose network ports
+
+> 🚨 **CRITICAL:** These base files must be created **exactly** as shown above with no modifications to ensure consistency across all infrastructure deployments. The `versions.tf` provider section will be customized based on client requirements (Google Cloud, AWS, Azure, etc.).
 
 ---
 
-## Google Cloud Services
+## Implementation Notes
 
-### Cloud Run Service Base
+When implementing infrastructure:
 
-When requesting a **Cloud Run service base**, create the following `main.tf` file **exactly** as specified:
-
-```hcl
-provider "google" {
-  project = var.GCP_PROJECT_ID
-}
-
-resource "google_cloud_run_v2_service" "default" {
-  name     = "${var.PROJECT}-${var.ENVIRONMENT}-${var.APP}"
-  location = "us-central1"
-
-  template {
-    scaling {
-      min_instance_count = 0
-      max_instance_count = 1
-    }
-
-    containers {
-      image = var.IMAGE_DIGEST_DEFAULT
-
-      resources {
-        limits = {
-          cpu    = "2000m"
-          memory = "4Gi"
-        }
-
-        cpu_idle = true
-
-        startup_cpu_boost = false
-      }
-
-      ports {
-        container_port = var.PORT
-      }
-
-      ##########################################
-      # DYNAMIC ENV START
-      ##########################################
-
-      dynamic "env" {
-        for_each = local.env_vars
-        content {
-          name  = env.value.name
-          value = env.value.value
-        }
-      }
-
-      ##########################################
-      # DYNAMIC ENV END
-      ##########################################
-    }
-  }
-}
-
-data "google_iam_policy" "noauth" {
-  binding {
-    role    = "roles/run.invoker"
-    members = ["allUsers"]
-  }
-}
-
-resource "google_cloud_run_service_iam_policy" "noauth" {
-  location = google_cloud_run_v2_service.default.location
-  project  = google_cloud_run_v2_service.default.project
-  service  = google_cloud_run_v2_service.default.name
-
-  policy_data = data.google_iam_policy.noauth.policy_data
-}
-```
-
-> 🚨 **CRITICAL REQUIREMENTS:**
->
-> - **DO NOT** modify this file in any way
-> - **DO NOT** add any environment variables
-> - **DO NOT** fill out the variables.tf file
-> - **DO NOT** change any of the critical variables: `PROJECT`, `ENVIRONMENT`, `APP`, `GCP_PROJECT_ID`, `IMAGE_DIGEST_DEFAULT`, `PORT`
-> - These variables are managed by a separate system and must remain exactly as specified
+1. **Always create all 4 base files** regardless of the specific infrastructure being deployed
+2. **Backend is always GCS** - we use Google Cloud Storage as the backend for all Terraform state
+3. **Variables.tf starts blank** - it will be populated based on specific infrastructure needs
+4. **Main.tf variables** - include the required variables (PROJECT, ENVIRONMENT, APP) and conditional variables only when needed
+5. **Provider-specific configurations** will be added to versions.tf and main.tf based on client requirements
 
 ---
