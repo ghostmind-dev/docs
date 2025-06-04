@@ -27,13 +27,12 @@ The `local/` directory defines the **Local Pattern**: the setup and configuratio
 # 4. Volume Conventions
 
 - **LOCALHOST_SRC** (REQUIRED): Used to reference the volume source in every compose.yaml. It should always be included in the `volumes` section.
-- **SRC** (OPTIONAL): Represents the root of the devcontainer app (e.g., `/workspaces/app_name`). Use only if needed.
-- **APP** (OPTIONAL): Application name or identifier, use if relevant to the service.
+- **SRC** (OPTIONAL): Represents the root of the devcontainer app (e.g., `/workspaces/app_name`). Always use format `${SRC}/path` or `${SRC}appname`.
 
 # 5. Environment Variables
 
 - Use the `.env.local` file for local environment overrides whenever possible.
-- Environment variables like `APP`, `LOCALHOST_SRC`, and others may be referenced directly in the compose file.
+- Environment variables like `LOCALHOST_SRC`, `SRC`, and others may be referenced directly in the compose file.
 
 # 6. Implementation Steps
 
@@ -52,14 +51,14 @@ services:
     container_name: potion
     build:
       context: ${SRC}/app
-      dockerfile: ${SRC}/${APP}
+      dockerfile: ${SRC}/docker/Dockerfile
+      args:
         LOCAL: 'true'
     env_file:
       - ${SRC}/.env.local
     ports:
       - ${PORT}:${PORT}
     environment:
-      APP: ${APP}
       LOCALHOST_SRC: ${LOCALHOST_SRC}
     volumes:
       - ${LOCALHOST_SRC}/app:/app/
@@ -72,11 +71,12 @@ services:
 services:
   webui_server:
     build:
-      dockerfile: ../webui/Dockerfile
+      context: ${SRC}/webui
+      dockerfile: ${SRC}/docker/Dockerfile
       args:
         LOCAL: 'true'
     env_file:
-      - ../.env.local
+      - ${SRC}/.env.local
     ports:
       - ${WEBUI_PORT}:${WEBUI_PORT}
     environment:
@@ -89,10 +89,11 @@ services:
 
 Always include LOCAL argument in the docker build step
 
-```
+```yaml
 build:
-    dockerfile: ../webui/Dockerfile
-    args:
+  context: ${SRC}/app
+  dockerfile: ${SRC}/docker/Dockerfile
+  args:
     LOCAL: 'true'
 ```
 
