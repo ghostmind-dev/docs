@@ -18,6 +18,59 @@ The **Docker Pattern** is responsible for building the container images used to 
 
 ---
 
+## 🚨 CRITICAL: Docker BuildX Multi-Platform Requirements
+
+> ⚠️ **MANDATORY COMPLIANCE:** All Docker builds in this system use **Docker BuildX** for multi-platform building. This is a core architectural requirement and must be considered in every Dockerfile you create.
+
+### Key BuildX Requirements:
+
+1. **Multi-Platform Compatibility:** Your Dockerfile MUST work across multiple architectures (linux/amd64, linux/arm64)
+2. **Base Image Selection:** Always use multi-platform base images (most official images support this)
+3. **Architecture-Specific Dependencies:** Avoid architecture-specific packages or binaries unless absolutely necessary
+4. **Build Testing:** Consider how your build will behave on different platforms
+
+### Common BuildX Pitfalls to Avoid:
+
+❌ **AVOID:**
+
+- Using architecture-specific base images
+- Hardcoding platform-specific paths or binaries
+- Installing packages that don't exist on all target platforms
+- Using `RUN uname -m` or similar architecture detection in builds
+
+✅ **BEST PRACTICES:**
+
+- Use official multi-platform base images (e.g., `node:18-alpine`, `golang:1.21-alpine`)
+- Let package managers handle architecture differences
+- Use `--platform=$BUILDPLATFORM` in multi-stage builds when needed
+- Test builds on different platforms during development
+
+### Example Multi-Platform Aware Dockerfile:
+
+```dockerfile
+# ✅ Good: Official multi-platform base image
+FROM node:18-alpine AS builder
+
+# ✅ Good: Standard package installation works across platforms
+RUN apk add --no-cache git
+
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --only=production
+
+# ✅ Good: Multi-stage build for smaller final image
+FROM node:18-alpine
+WORKDIR /app
+COPY --from=builder /app/node_modules ./node_modules
+COPY . .
+EXPOSE 3000
+CMD ["npm", "start"]
+```
+
+**Remember:** Every Dockerfile you create will be built using `docker buildx build --platform linux/amd64,linux/arm64` or similar multi-platform commands.
+
+---
+
 ### Directory Structure
 
 Your Docker pattern **must** follow this structure:
