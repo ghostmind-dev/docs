@@ -40,7 +40,7 @@ Your Docker pattern **must** follow this structure:
 
 #### Understanding context_dir in meta.json
 
-The `context_dir` setting in your `meta.json` determines the Docker build context:
+The `context_dir` setting in your `meta.json` determines the Docker build context and is **REQUIRED**:
 
 ```json
 "docker": {
@@ -48,7 +48,7 @@ The `context_dir` setting in your `meta.json` determines the Docker build contex
     "root": "docker",
     "image": "gcr.io/ghostmind-core/app-name",
     "env_based": false,
-    "context_dir": "app"  // This sets build context to app/ directory
+    "context_dir": "app"  // REQUIRED: This sets build context to app/ directory
   }
 }
 ```
@@ -62,7 +62,7 @@ The `context_dir` setting in your `meta.json` determines the Docker build contex
 - Use: `COPY go.mod go.sum ./` (NOT `COPY app/go.mod app/go.sum ./`)
 - Use: `COPY src/ ./src/` (NOT `COPY app/src/ ./src/`)
 
-**If `context_dir` is NOT set (default):**
+**If `context_dir` is set to `"."`** (project root):
 
 - Build context is the project root directory
 - COPY commands are relative to the project root
@@ -89,8 +89,8 @@ COPY src/ ./src/               # Correct: looks for app/src/
 
 If you get "file not found" errors during Docker build:
 
-1. Check `meta.json` for `context_dir` setting
-2. Verify your COPY commands match the build context
+1. Verify the required `context_dir` setting in `meta.json`
+2. Ensure your COPY commands match the build context
 3. Remember: paths in Dockerfile are relative to the build context, not the Dockerfile location
 
 ---
@@ -121,7 +121,7 @@ gcr.io/ghostmind-core/APP_NAME
 - `root` must always be set to `"docker"`.
 - `image` must always use the Google Container Registry (GCR) base: `gcr.io/ghostmind-core/APP_NAME`.
 - Set `env_based` to `true` or `false` as appropriate (default is `false` unless environment-specific images are needed).
-- `context_dir` is optional but affects how COPY commands work (see Build Context section above).
+- `context_dir` is **REQUIRED** and determines how COPY commands work (see Build Context section above).
 
 **Note:**
 After you finish creating the `docker/` directory and its contents, you **must update the `meta.json`** with the correct Docker block.
@@ -151,7 +151,7 @@ All Compose and deployment logic assumes the image and `docker/` structure descr
 2. Add your `Dockerfile` and any supporting files inside `docker/`.
 3. Set the correct image name in `meta.json` using the format: `gcr.io/ghostmind-core/APP_NAME`.
 4. Make sure `root` is `"docker"` in the Docker block.
-5. **🚨 CRITICAL:** Check if `context_dir` is set in `meta.json` and adjust COPY commands accordingly.
+5. **🚨 CRITICAL:** Set the required `context_dir` property in `meta.json` and adjust COPY commands accordingly.
 6. Test your Docker build to ensure file paths are correct.
 7. Do **not** touch code or files outside of `docker/` for this pattern.
 8. Refer back to [`base.md`](https://github.com/ghostmind-dev/docs/blob/main/docs/app/base.md) if unsure.
