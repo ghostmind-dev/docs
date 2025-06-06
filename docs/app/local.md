@@ -85,6 +85,34 @@ services:
       - ${LOCALHOST_SRC}/webui/tmp/app/backend/data:/app/backend/data
 ```
 
+## Example 3 - Next.js Development
+
+```yaml
+services:
+  lapse_app:
+    container_name: ${APP:-lapse}
+    build:
+      context: ${SRC}/app
+      dockerfile: ${SRC}/docker/Dockerfile.dev
+      target: dev
+      args:
+        LOCAL: 'true'
+    env_file:
+      - ${SRC}/.env.local
+    ports:
+      - ${PORT:-3001}:3000
+    environment:
+      LOCALHOST_SRC: ${LOCALHOST_SRC}
+      NODE_ENV: development
+      NEXT_TELEMETRY_DISABLED: 1
+    volumes:
+      - ${LOCALHOST_SRC}/app:/app
+      - /app/node_modules
+      - /app/.next
+    command: ['npm', 'run', 'dev']
+    working_dir: /app
+```
+
 ## LOCAL
 
 Always include LOCAL argument in the docker build step
@@ -101,6 +129,46 @@ build:
 
 After adding or modifying the local compose file, **update the `meta.json`** to include a `compose` object describing the local configuration. Always refer to the [`meta.json` schema](https://github.com/ghostmind-dev/config/blob/main/config/meta/schema.json) for the required structure and fields.
 
+# 9. Development Best Practices & Troubleshooting
+
+## Port Binding Issues
+
+- **Always use different ports for local development** (e.g., `3001:3000`) to avoid conflicts with other services
+- Use environment variables like `${PORT:-3001}` to make ports configurable
+- Check for existing containers using the same port: `docker ps` before starting
+
+## Development vs Production Dockerfiles
+
+- **Create separate Dockerfiles for development** (e.g., `Dockerfile.dev`) that:
+  - Include dev dependencies (`npm ci` instead of `npm ci --only=production`)
+  - Use development commands (`npm run dev` instead of production build)
+  - Support hot reloading with proper volume mounts
+- **Use multi-stage builds** with a `dev` target for development
+
+## Next.js Specific Considerations
+
+- **Volume exclusions**: Always exclude `node_modules` and `.next` from volume mounts to prevent conflicts:
+  ```yaml
+  volumes:
+    - ${LOCALHOST_SRC}/app:/app
+    - /app/node_modules
+    - /app/.next
+  ```
+- **Environment variables**: Set `NODE_ENV=development` and `NEXT_TELEMETRY_DISABLED=1`
+- **Working directory**: Ensure `working_dir: /app` is set for proper command execution
+
+## Container Name Conflicts
+
+- **Use unique container names** with the pattern `${APP:-default_name}`
+- **Clean up existing containers** before starting: `docker stop <name> && docker rm <name>`
+- **Use compose down** to clean up all services: `docker compose down`
+
+## Host Access Issues
+
+- **Ensure proper port mapping**: Container port (e.g., 3000) must be mapped to host port (e.g., 3001)
+- **Check container status**: Use `docker compose ps` to verify services are running with correct port mappings
+- **Verify network binding**: Ensure the app binds to `0.0.0.0` not just `localhost` inside the container
+
 ---
 
 **Summary:**
@@ -110,3 +178,6 @@ After adding or modifying the local compose file, **update the `meta.json`** to 
 - Review and verify all Docker and app components first.
 - Add a `compose` object to `meta.json` reflecting local setup.
 - Use the examples above as a guide, but adapt as needed for your app.
+- **Create development-specific Dockerfiles for better local development experience.**
+- **Use different ports for local development to avoid conflicts.**
+- **Pay attention to volume mounts and exclusions for hot reloading frameworks.**
