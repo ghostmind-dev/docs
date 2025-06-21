@@ -95,3 +95,6 @@ __pycache__
 **/app/liste/container/src/app/audio/*.**
 
 **/dist
+
+
+**/.data
