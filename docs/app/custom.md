@@ -1,6 +1,15 @@
 ## Custom Scripting Guide - Scripts Pattern
 
-This guide tells an AI **exactly** what to do when implementing the **Scripts Pattern** - creating custom, automated scripts within the standardized directory structure. This is one of the five core patterns (app, docker, infra, local, scripts) defined in our system.
+> 🦕 **CRITICAL: DENO RUNTIME DISCLAIMER**  
+> **These are DENO scripts, NOT Node.js scripts!** All examples, imports, and APIs in this guide are specifically designed for the Deno runtime. Key differences:
+>
+> - Use `import` from URLs (JSR/npm: prefixes) instead of npm package.json dependencies
+> - Use Deno's built-in APIs (`Deno.readTextFile`, `Deno.env`, etc.) instead of Node.js equivalents
+> - File system operations use Deno's permissions model
+> - No `require()` - only ES modules with `import`
+> - Different standard library and runtime APIs
+
+This guide tells an AI **exactly** what to do when implementing the **Scripts Pattern** - creating custom, automated Deno scripts within the standardized directory structure. This is one of the five core patterns (app, docker, infra, local, scripts) defined in our system.
 
 **📄 Base Reference:** [base.md](https://github.com/ghostmind-dev/docs/blob/main/docs/app/base.md)
 
@@ -18,11 +27,12 @@ The goal is to centralize and standardize automation, from simple build commands
 
 ## 2. Script Anatomy
 
-A custom script is a TypeScript module that must export a `default async function`. This function is the script's entry point.
+A custom script is a Deno TypeScript module that must export a `default async function`. This function is the script's entry point.
 
 - **Location:** Scripts are typically placed in the `scripts/` directory, as defined by the `scriptsDir` property in `meta.json`.
 - **Entry Point:** The file must contain `export default async function(args, opts) { ... }`.
 - **Type Safety:** For proper type checking and autocompletion, import the core types from the `run` toolkit.
+- **Runtime:** These scripts run in Deno, not Node.js - use Deno APIs and import syntax.
 
 **Basic Structure:**
 
@@ -40,6 +50,50 @@ export default async function (args: CustomArgs, opts: CustomOptions) {
 
   await $`echo "Script finished."`;
 }
+```
+
+### 🦕 Deno-Specific Considerations
+
+When writing custom scripts, remember these Deno-specific patterns:
+
+**File System Operations:**
+
+```typescript
+// ✅ DENO: Use Deno's built-in file APIs
+const content = await Deno.readTextFile('./config.json');
+await Deno.writeTextFile('./output.txt', data);
+
+// ❌ NODE.JS: Don't use Node.js fs module
+// const fs = require('fs'); // This won't work in Deno
+```
+
+**Environment Variables:**
+
+```typescript
+// ✅ DENO: Use Deno.env or opts.env
+const apiKey = Deno.env.get('API_KEY') || opts.env['API_KEY'];
+
+// ❌ NODE.JS: Don't use process.env directly
+// const apiKey = process.env.API_KEY; // This won't work in Deno
+```
+
+**Imports:**
+
+```typescript
+// ✅ DENO: Use JSR and npm: prefixes for external modules
+import { $ } from 'npm:zx';
+import { serve } from 'jsr:@std/http';
+
+// ❌ NODE.JS: Don't use bare imports without prefixes
+// import zx from 'zx'; // This won't work in Deno
+```
+
+**Permissions:**
+Deno scripts may require explicit permissions when run:
+
+```bash
+# The run command handles permissions, but if running directly:
+deno run --allow-read --allow-write --allow-net --allow-run script.ts
 ```
 
 ## 3. Execution from the Command Line
@@ -276,94 +330,94 @@ The parsed `meta.json` configuration object for the current project, providing a
 ```typescript
 // Base required fields
 interface MetaJsonBase {
-  id: string;                    // Required: 12-character hexadecimal string
-  name: string;                  // Required: Project/app name
+  id: string; // Required: 12-character hexadecimal string
+  name: string; // Required: Project/app name
 }
 
 // Complete meta.json schema (matches official schema.json)
 interface MetaJson extends MetaJsonBase {
   // Optional core fields
-  version?: string;              // Project version
-  description?: string;          // Project description
-  type?: "app" | "project" | "template";  // Project type enum
-  global?: boolean;              // Whether project is global
-  port?: number;                 // Default port for the application
-  tags?: string[];               // Tags for project categorization
-  
+  version?: string; // Project version
+  description?: string; // Project description
+  type?: 'app' | 'project' | 'template'; // Project type enum
+  global?: boolean; // Whether project is global
+  port?: number; // Default port for the application
+  tags?: string[]; // Tags for project categorization
+
   // Custom scripts configuration
   custom?: {
-    root: string;                // Path to the scripts folder
+    root: string; // Path to the scripts folder
   };
-  
+
   // Docker configuration
   docker?: {
     [componentName: string]: {
-      root: string;              // Path to Dockerfile directory
-      image: string;             // Docker image name
-      env_based?: boolean;       // Whether to use environment-based configuration
-      context_dir?: string;      // Docker build context directory
-      tag_modifiers?: string[];  // Additional tags to apply
-    }
+      root: string; // Path to Dockerfile directory
+      image: string; // Docker image name
+      env_based?: boolean; // Whether to use environment-based configuration
+      context_dir?: string; // Docker build context directory
+      tag_modifiers?: string[]; // Additional tags to apply
+    };
   };
-  
+
   // Docker Compose configuration
   compose?: {
     [composeName: string]: {
-      root: string;              // Path to compose file directory
-      filename?: string;         // Custom compose filename (default: docker-compose.yml)
-    }
+      root: string; // Path to compose file directory
+      filename?: string; // Custom compose filename (default: docker-compose.yml)
+    };
   };
-  
+
   // Terraform infrastructure
   terraform?: {
     [componentName: string]: {
-      path: string;              // Path to Terraform configuration
-      global: boolean;           // Whether component is globally shared
-      containers?: string[];     // List of containers to be used
-    }
+      path: string; // Path to Terraform configuration
+      global: boolean; // Whether component is globally shared
+      containers?: string[]; // List of containers to be used
+    };
   };
-  
+
   // Custom routines (npm-style scripts)
   routines?: {
-    [routineName: string]: string;  // Command to execute
+    [routineName: string]: string; // Command to execute
   };
-  
+
   // Secrets management
   secrets?: {
-    base: string;                // Base path for secrets/environment variables file
+    base: string; // Base path for secrets/environment variables file
   };
-  
+
   // Tunneling configuration for local development
   tunnel?: {
     [tunnelName: string]: {
-      hostname: string;          // Hostname for the tunnel (example: example.com)
-      service: string;           // Local service to be tunneled (example: localhost:8080)
-    }
+      hostname: string; // Hostname for the tunnel (example: example.com)
+      service: string; // Local service to be tunneled (example: localhost:8080)
+    };
   };
-  
+
   // MCP (Model Context Protocol) servers - supports two types
   mcp?: {
-    [serverName: string]: 
+    [serverName: string]:
       | {
           // Command-based MCP server
-          command: string;              // Required: Command to start server
-          args?: string[];              // Command arguments
-          env?: Record<string, any>;    // Environment variables
+          command: string; // Required: Command to start server
+          args?: string[]; // Command arguments
+          env?: Record<string, any>; // Environment variables
         }
       | {
           // URL-based MCP server
-          url: string;                  // Required: Server URL
+          url: string; // Required: Server URL
           headers?: Record<string, string>; // HTTP headers
-        }
+        };
   };
-  
+
   // Template-specific configuration
   template?: {
     [templateName: string]: {
-      ignoreFolders?: string[];  // Folders to ignore when copying template
-      ignoreFiles?: string[];    // Files to ignore when copying template
-      init?: string[];           // Commands to run after template initialization
-    }
+      ignoreFolders?: string[]; // Folders to ignore when copying template
+      ignoreFiles?: string[]; // Files to ignore when copying template
+      init?: string[]; // Commands to run after template initialization
+    };
   };
 }
 ```
@@ -375,18 +429,18 @@ import type { CustomArgs, CustomOptions } from 'jsr:@ghostmind/run';
 
 export default async function (args: CustomArgs, opts: CustomOptions) {
   const { metaConfig } = opts;
-  
+
   if (!metaConfig) {
     throw new Error('No meta.json configuration found');
   }
-  
+
   // Basic project information
   console.log(`Project: ${metaConfig.name}`);
   console.log(`ID: ${metaConfig.id}`);
   console.log(`Type: ${metaConfig.type || 'undefined'}`);
   console.log(`Version: ${metaConfig.version || 'undefined'}`);
   console.log(`Global: ${metaConfig.global || false}`);
-  
+
   // Access Docker configuration
   if (metaConfig.docker) {
     Object.entries(metaConfig.docker).forEach(([name, config]) => {
@@ -394,10 +448,12 @@ export default async function (args: CustomArgs, opts: CustomOptions) {
       console.log(`  Image: ${config.image}`);
       console.log(`  Root: ${config.root}`);
       console.log(`  Context: ${config.context_dir || 'same as root'}`);
-      console.log(`  Tag modifiers: ${config.tag_modifiers?.join(', ') || 'none'}`);
+      console.log(
+        `  Tag modifiers: ${config.tag_modifiers?.join(', ') || 'none'}`
+      );
     });
   }
-  
+
   // Access Compose configuration
   if (metaConfig.compose) {
     Object.entries(metaConfig.compose).forEach(([name, config]) => {
@@ -406,7 +462,7 @@ export default async function (args: CustomArgs, opts: CustomOptions) {
       console.log(`  Filename: ${config.filename || 'docker-compose.yml'}`);
     });
   }
-  
+
   // Access Terraform configuration
   if (metaConfig.terraform) {
     Object.entries(metaConfig.terraform).forEach(([name, config]) => {
@@ -416,16 +472,16 @@ export default async function (args: CustomArgs, opts: CustomOptions) {
       console.log(`  Containers: ${config.containers?.join(', ') || 'none'}`);
     });
   }
-  
+
   // Access custom scripts configuration
   if (metaConfig.custom) {
     console.log(`Custom scripts root: ${metaConfig.custom.root}`);
   }
-  
+
   // Use port configuration
   const port = metaConfig.port || 3000;
   console.log(`Default port: ${port}`);
-  
+
   // Access custom routines
   if (metaConfig.routines) {
     console.log('Available routines:');
@@ -433,7 +489,7 @@ export default async function (args: CustomArgs, opts: CustomOptions) {
       console.log(`  ${name}: ${command}`);
     });
   }
-  
+
   // Access MCP servers
   if (metaConfig.mcp) {
     Object.entries(metaConfig.mcp).forEach(([name, config]) => {
@@ -444,24 +500,28 @@ export default async function (args: CustomArgs, opts: CustomOptions) {
       }
     });
   }
-  
+
   // Access tunnel configuration
   if (metaConfig.tunnel) {
     Object.entries(metaConfig.tunnel).forEach(([name, config]) => {
       console.log(`Tunnel ${name}: ${config.hostname} -> ${config.service}`);
     });
   }
-  
+
   // Access template configuration
   if (metaConfig.template) {
     Object.entries(metaConfig.template).forEach(([name, config]) => {
       console.log(`Template ${name}:`);
-      console.log(`  Ignore folders: ${config.ignoreFolders?.join(', ') || 'none'}`);
-      console.log(`  Ignore files: ${config.ignoreFiles?.join(', ') || 'none'}`);
+      console.log(
+        `  Ignore folders: ${config.ignoreFolders?.join(', ') || 'none'}`
+      );
+      console.log(
+        `  Ignore files: ${config.ignoreFiles?.join(', ') || 'none'}`
+      );
       console.log(`  Init commands: ${config.init?.join(', ') || 'none'}`);
     });
   }
-  
+
   // Tags for categorization
   if (metaConfig.tags?.length) {
     console.log(`Tags: ${metaConfig.tags.join(', ')}`);
@@ -506,7 +566,7 @@ The `meta.json` file supports dynamic environment variable substitution:
       "containers": ["api", "ui"]
     },
     "database": {
-      "path": "./terraform/database", 
+      "path": "./terraform/database",
       "global": false
     }
   },
@@ -544,6 +604,7 @@ The `meta.json` file supports dynamic environment variable substitution:
 ```
 
 **Variable Resolution:**
+
 - `${VAR}` - Environment variable
 - `${this.prop}` - Reference to another property in the same meta.json
 - Nested references work: `${this.docker.api.image}`
@@ -608,34 +669,40 @@ export interface CustomOptions {
   currentPath: string;
   metaConfig?: MetaJson;
   port?: number;
-  
+
   // URL configuration
   url?: CustomOptionsUrl;
-  
+
   // Input data array
   input?: string[];
-  
+
   // Utility functions
   extract: (inputName: string) => string | undefined;
   has: (arg: string) => boolean;
-  
+
   // Command building utility
-  cmd: (template: string | TemplateStringsArray, ...substitutions: any[]) => Promise<string[]>;
-  
+  cmd: (
+    template: string | TemplateStringsArray,
+    ...substitutions: any[]
+  ) => Promise<string[]>;
+
   // Task orchestration
   start: (config: CustomStartConfig) => Promise<void>;
-  
+
   // Run executable path
   run?: string;
-  
+
   // Main function access
   main: typeof main; // Access to core run functions
-  
+
   // Alternative utility access
   utils: {
     extract: (inputName: string) => string | undefined;
     has: (arg: string) => boolean;
-    cmd: (template: string | TemplateStringsArray, ...substitutions: any[]) => Promise<string[]>;
+    cmd: (
+      template: string | TemplateStringsArray,
+      ...substitutions: any[]
+    ) => Promise<string[]>;
     start: (config: CustomStartConfig) => Promise<void>;
   };
 }
@@ -643,29 +710,29 @@ export interface CustomOptions {
 // Task configuration for opts.start()
 export interface CustomStartConfig {
   [taskName: string]:
-    | string                                    // Shell command
-    | CustomFunction                           // TypeScript function
-    | CustomStartConfigCommandFunction         // Function with options
-    | CustomStartConfigCommandCommand;         // Shell command with variables
+    | string // Shell command
+    | CustomFunction // TypeScript function
+    | CustomStartConfigCommandFunction // Function with options
+    | CustomStartConfigCommandCommand; // Shell command with variables
 }
 
 // Function-based task configuration
 export interface CustomStartConfigCommandFunction extends CommandOptions {
   command: CustomFunction;
-  options?: any;                              // Passed to the function
-  variables?: never;                          // Not used for functions
+  options?: any; // Passed to the function
+  variables?: never; // Not used for functions
 }
 
 // String-based task configuration
 export interface CustomStartConfigCommandCommand extends CommandOptions {
-  command: string;                            // Shell command
-  variables?: any;                           // Environment variables for command
-  options?: never;                           // Not used for shell commands
+  command: string; // Shell command
+  variables?: any; // Environment variables for command
+  options?: never; // Not used for shell commands
 }
 
 // Base command options
 export interface CommandOptions {
-  priority?: number;                         // Execution priority (lower = earlier)
+  priority?: number; // Execution priority (lower = earlier)
 }
 
 // Custom function type
@@ -680,11 +747,11 @@ export interface MetaJson extends MetaJsonBase {
 ### Usage with Full Type Safety
 
 ```typescript
-import type { 
-  CustomArgs, 
-  CustomOptions, 
+import type {
+  CustomArgs,
+  CustomOptions,
   CustomStartConfig,
-  MetaJson 
+  MetaJson,
 } from 'jsr:@ghostmind/run';
 
 export default async function (args: CustomArgs, opts: CustomOptions) {
@@ -702,9 +769,9 @@ export default async function (args: CustomArgs, opts: CustomOptions) {
     start,
     run,
     main,
-    utils
+    utils,
   } = opts;
-  
+
   // Type-safe meta.json access
   if (metaConfig) {
     const dockerConfig = metaConfig.docker?.['api'];
@@ -714,34 +781,38 @@ export default async function (args: CustomArgs, opts: CustomOptions) {
     const tunnelConfig = metaConfig.tunnel?.['main'];
     const portConfig = metaConfig.port || 3000;
     const projectType = metaConfig.type; // "app" | "project" | "template" | undefined
-    
+
     // Access docker configuration safely
     if (dockerConfig) {
       console.log(`Docker image: ${dockerConfig.image}`);
-      console.log(`Tag modifiers: ${dockerConfig.tag_modifiers?.join(', ') || 'none'}`);
+      console.log(
+        `Tag modifiers: ${dockerConfig.tag_modifiers?.join(', ') || 'none'}`
+      );
     }
-    
+
     // Access Terraform configuration safely
     if (terraformConfig) {
       console.log(`Terraform path: ${terraformConfig.path}`);
       console.log(`Global component: ${terraformConfig.global}`);
     }
-    
+
     // Access tunnel configuration safely
     if (tunnelConfig) {
-      console.log(`Tunnel: ${tunnelConfig.hostname} -> ${tunnelConfig.service}`);
+      console.log(
+        `Tunnel: ${tunnelConfig.hostname} -> ${tunnelConfig.service}`
+      );
     }
-    
+
     // Access MCP server configuration
     if (mcpServer && 'command' in mcpServer) {
       console.log(`MCP command: ${mcpServer.command}`);
     }
-    
+
     // Access custom scripts path
     const scriptsPath = metaConfig.custom?.root || './scripts';
     console.log(`Scripts directory: ${scriptsPath}`);
   }
-  
+
   // Type-safe task configuration
   const taskConfig: CustomStartConfig = {
     build: {
@@ -756,7 +827,7 @@ export default async function (args: CustomArgs, opts: CustomOptions) {
       options: { environment: args[0] || 'development' },
     },
   };
-  
+
   await start(taskConfig);
 }
 ```
@@ -861,7 +932,7 @@ if (await verifyIfMetaJsonExists(metaPath)) {
 
 // Get files in directory with filtering
 const sourceFiles = await getFilesInDirectory('./src');
-const tsFiles = sourceFiles.filter(file => file.endsWith('.ts'));
+const tsFiles = sourceFiles.filter((file) => file.endsWith('.ts'));
 
 // Discover project structure
 const allDirs = await recursiveDirectoriesDiscovery('./projects');
@@ -871,14 +942,11 @@ console.log('All project directories:', allDirs);
 ### Docker Compose Integration
 
 ```typescript
-import {
-  dockerComposeBuild,
-  dockerComposeUp,
-} from 'jsr:@ghostmind/run';
+import { dockerComposeBuild, dockerComposeUp } from 'jsr:@ghostmind/run';
 
 export default async function (args: CustomArgs, opts: CustomOptions) {
   const { has } = opts;
-  
+
   // Build services if requested
   if (has('build')) {
     await dockerComposeBuild({
@@ -886,7 +954,7 @@ export default async function (args: CustomArgs, opts: CustomOptions) {
       noCache: has('no-cache'),
     });
   }
-  
+
   // Start services
   await dockerComposeUp({
     forceRecreate: has('fresh'),
@@ -910,7 +978,7 @@ import { $ } from 'npm:zx';
 export default async function (args: CustomArgs, opts: CustomOptions) {
   const environment = args[0] || 'development';
   const { start, has, extract } = opts;
-  
+
   // Multi-stage deployment with priority ordering
   await start({
     // Stage 1: Build and register containers
@@ -924,14 +992,14 @@ export default async function (args: CustomArgs, opts: CustomOptions) {
       priority: 1,
       options: { component: 'ui', amd64: true },
     },
-    
+
     // Stage 2: Deploy infrastructure
     activate_core: {
       command: terraformActivate,
       priority: 2,
       options: { component: 'core', arch: extract('arch') || 'amd64' },
     },
-    
+
     // Stage 3: Health checks and validation
     validate_deployment: {
       command: async () => {
@@ -954,31 +1022,33 @@ import { $ } from 'npm:zx';
 
 export default async function (args: CustomArgs, opts: CustomOptions) {
   const { run, has, env } = opts;
-  
+
   // Conditional build step
   if (has('build')) {
     await dockerComposeBuild({});
   }
-  
+
   const processes = [];
-  
+
   // Setup tunnel if requested
   if (has('tunnel')) {
     const tunnelName = env['TUNNEL_NAME'];
     if (!tunnelName) {
-      throw new Error('TUNNEL_NAME environment variable required for tunnel mode');
+      throw new Error(
+        'TUNNEL_NAME environment variable required for tunnel mode'
+      );
     }
-    
+
     // Configure authentication for tunnel
     Deno.env.set('NEXTAUTH_URL', `https://${tunnelName}`);
     processes.push($`${run} tunnel run`);
   }
-  
+
   // Start services
   if (has('up')) {
     processes.push(dockerComposeUp({ forceRecreate: has('fresh') }));
   }
-  
+
   // Run all processes in parallel
   await Promise.all(processes);
 }
@@ -994,14 +1064,14 @@ import { $ } from 'npm:zx';
 export default async function (args: CustomArgs, opts: CustomOptions) {
   const modelName = args[0] || opts.extract('model');
   const { start, env, has } = opts;
-  
+
   if (!modelName) {
     throw new Error('Model name required: run custom ml-deploy <model_name>');
   }
-  
+
   const deploymentId = await createUUID();
   console.log(`Starting ML deployment ${deploymentId} for model: ${modelName}`);
-  
+
   await start({
     // Start model server
     serve: {
@@ -1010,11 +1080,11 @@ export default async function (args: CustomArgs, opts: CustomOptions) {
           $.verbose = true;
         }
         await $`ollama serve`;
-        await new Promise(resolve => setTimeout(resolve, 2000)); // Wait for startup
+        await new Promise((resolve) => setTimeout(resolve, 2000)); // Wait for startup
       },
       priority: 1,
     },
-    
+
     // Pull model
     pull: {
       command: async () => {
@@ -1023,7 +1093,7 @@ export default async function (args: CustomArgs, opts: CustomOptions) {
       },
       priority: 1,
     },
-    
+
     // Backup to cloud storage
     backup: {
       command: async () => {
@@ -1035,12 +1105,12 @@ export default async function (args: CustomArgs, opts: CustomOptions) {
       },
       priority: 2,
     },
-    
+
     // Run validation tests
     test: {
       command: async () => {
         if (has('skip-tests')) return;
-        
+
         console.log('Running model validation tests...');
         const testPrompt = 'Hello, world!';
         await $`curl -X POST http://localhost:11434/api/generate \
@@ -1050,7 +1120,7 @@ export default async function (args: CustomArgs, opts: CustomOptions) {
       priority: 3,
     },
   });
-  
+
   console.log(`ML deployment ${deploymentId} completed successfully`);
 }
 ```
@@ -1064,12 +1134,12 @@ import { $ } from 'npm:zx';
 export default async function (args: CustomArgs, opts: CustomOptions) {
   const command = args[0]; // 'migrate', 'seed', 'reset'
   const { start, env, has, currentPath } = opts;
-  
+
   const dbUrl = env['DATABASE_URL'];
   if (!dbUrl) {
     throw new Error('DATABASE_URL environment variable is required');
   }
-  
+
   switch (command) {
     case 'migrate':
       await start({
@@ -1089,15 +1159,18 @@ export default async function (args: CustomArgs, opts: CustomOptions) {
         },
       });
       break;
-      
+
     case 'seed':
-      if (has('confirm') || await confirmAction('This will modify database data')) {
+      if (
+        has('confirm') ||
+        (await confirmAction('This will modify database data'))
+      ) {
         await $`hasura seeds apply --database-name default`;
       }
       break;
-      
+
     case 'reset':
-      if (has('force') || await confirmAction('This will DESTROY all data')) {
+      if (has('force') || (await confirmAction('This will DESTROY all data'))) {
         await start({
           drop_db: {
             command: `dropdb ${extractDbName(dbUrl)}`,
@@ -1117,9 +1190,11 @@ export default async function (args: CustomArgs, opts: CustomOptions) {
         });
       }
       break;
-      
+
     default:
-      console.log('Usage: run custom db-setup <migrate|seed|reset> [--force] [--confirm]');
+      console.log(
+        'Usage: run custom db-setup <migrate|seed|reset> [--force] [--confirm]'
+      );
   }
 }
 
@@ -1146,7 +1221,7 @@ import type { CustomArgs, CustomOptions } from 'jsr:@ghostmind/run';
 export default async function (args: CustomArgs, opts: CustomOptions) {
   // Common pattern: use first argument as command
   const command = args[0];
-  
+
   // Validate required arguments
   if (!command) {
     console.error('Error: Command required');
@@ -1154,7 +1229,7 @@ export default async function (args: CustomArgs, opts: CustomOptions) {
     console.log('Available commands: init, deploy, test, cleanup');
     Deno.exit(1);
   }
-  
+
   // Handle different commands with fallback
   switch (command) {
     case 'init':
@@ -1175,7 +1250,9 @@ export default async function (args: CustomArgs, opts: CustomOptions) {
 async function initializeProject(args: string[], opts: CustomOptions) {
   const projectName = args[0] || opts.extract('name');
   if (!projectName) {
-    throw new Error('Project name required: --name=<project> or as first argument');
+    throw new Error(
+      'Project name required: --name=<project> or as first argument'
+    );
   }
   // initialization logic
 }
@@ -1245,6 +1322,7 @@ The `meta.json` configuration supports dynamic variable substitution at runtime:
 ```
 
 **Variable Types:**
+
 - `${ENV_VAR}` - Environment variables
 - `${this.property}` - Self-references to other properties in the same meta.json
 - Nested references work: `${this.docker.api.image}`
@@ -1260,10 +1338,10 @@ import { $ } from 'npm:zx';
 
 export default async function (args: CustomArgs, opts: CustomOptions) {
   const { metaConfig, has } = opts;
-  
+
   // Build multiple components in parallel
   const buildPromises = [];
-  
+
   if (metaConfig.docker) {
     Object.entries(metaConfig.docker).forEach(([component, config]) => {
       buildPromises.push(
@@ -1276,22 +1354,22 @@ export default async function (args: CustomArgs, opts: CustomOptions) {
       );
     });
   }
-  
+
   // Execute all builds in parallel
   console.log(`Building ${buildPromises.length} components in parallel...`);
   await Promise.all(buildPromises);
-  
+
   // Run validation tests in parallel
   const testPromises = [
     $`npm test --prefix ./api`,
     $`npm test --prefix ./ui`,
     $`docker run --rm ${metaConfig.docker?.api?.image} /app/healthcheck.sh`,
   ];
-  
+
   const testResults = await Promise.allSettled(testPromises);
-  
+
   // Check for test failures
-  const failures = testResults.filter(result => result.status === 'rejected');
+  const failures = testResults.filter((result) => result.status === 'rejected');
   if (failures.length > 0) {
     console.error(`${failures.length} tests failed:`);
     failures.forEach((failure, index) => {
@@ -1299,7 +1377,7 @@ export default async function (args: CustomArgs, opts: CustomOptions) {
     });
     Deno.exit(1);
   }
-  
+
   console.log('All tests passed!');
 }
 ```
@@ -1311,35 +1389,38 @@ import type { CustomArgs, CustomOptions } from 'jsr:@ghostmind/run';
 import { dockerRegister, createUUID } from 'jsr:@ghostmind/run';
 import { $ } from 'npm:zx';
 
-async function customBuildStep(options: { component: string; version: string }) {
+async function customBuildStep(options: {
+  component: string;
+  version: string;
+}) {
   console.log(`Custom build for ${options.component} v${options.version}`);
   // Custom build logic here
 }
 
 export default async function (args: CustomArgs, opts: CustomOptions) {
-  const version = opts.extract('version') || await createUUID(8);
-  
+  const version = opts.extract('version') || (await createUUID(8));
+
   await opts.start({
     // String command - runs in shell
     prepare: {
       command: 'echo "Preparing build environment..."',
       priority: 1,
     },
-    
+
     // Function command - runs TypeScript function
     custom_build: {
       command: customBuildStep,
       priority: 2,
       options: { component: 'api', version },
     },
-    
+
     // Imported function command
     docker_build: {
       command: dockerRegister,
       priority: 2, // Same priority = runs in parallel with custom_build
       options: { component: 'api', amd64: true },
     },
-    
+
     // Async arrow function
     finalize: {
       command: async () => {
@@ -1360,11 +1441,11 @@ import { verifyIfMetaJsonExists, withMetaMatching } from 'jsr:@ghostmind/run';
 
 export default async function (args: CustomArgs, opts: CustomOptions) {
   const environment = args[0] || 'development';
-  
+
   // Load environment-specific configuration
   const configPath = `./config/${environment}.json`;
   let envConfig = {};
-  
+
   try {
     const configText = await Deno.readTextFile(configPath);
     envConfig = JSON.parse(configText);
@@ -1372,22 +1453,27 @@ export default async function (args: CustomArgs, opts: CustomOptions) {
   } catch {
     console.warn(`No specific config found for ${environment}, using defaults`);
   }
-  
+
   // Find related projects/services
   const relatedServices = await withMetaMatching({
     type: 'app',
     tags: [opts.metaConfig.name], // Services tagged with current project name
   });
-  
-  console.log(`Found ${relatedServices.length} related services:`, relatedServices);
-  
+
+  console.log(
+    `Found ${relatedServices.length} related services:`,
+    relatedServices
+  );
+
   // Process each related service
   for (const servicePath of relatedServices) {
     const serviceMetaPath = `${servicePath}/meta.json`;
     if (await verifyIfMetaJsonExists(serviceMetaPath)) {
-      const serviceConfig = JSON.parse(await Deno.readTextFile(serviceMetaPath));
+      const serviceConfig = JSON.parse(
+        await Deno.readTextFile(serviceMetaPath)
+      );
       console.log(`Processing service: ${serviceConfig.name}`);
-      
+
       // Perform operations on each service
       // This could be deployment, testing, configuration updates, etc.
     }
@@ -1404,10 +1490,10 @@ import { $ } from 'npm:zx';
 export default async function (args: CustomArgs, opts: CustomOptions) {
   const { utils, metaConfig, env } = opts;
   const { cmd } = utils;
-  
+
   const service = args[0];
   const region = opts.extract('region') || 'us-east-1';
-  
+
   // Build complex commands with template literals
   const deployCommand = await cmd`
     gcloud run deploy ${service}
@@ -1419,10 +1505,10 @@ export default async function (args: CustomArgs, opts: CustomOptions) {
     --memory 512Mi
     --cpu 1000m
   `;
-  
+
   console.log('Executing deployment command:');
   console.log(deployCommand.join(' '));
-  
+
   // Execute the built command
   await $`${deployCommand}`;
 }
@@ -1445,31 +1531,31 @@ export default async function (args: CustomArgs, opts: CustomOptions) {
   const environment = opts.extract('env') || 'development';
   const region = opts.extract('region') || 'us-east-1';
   const timeout = parseInt(opts.extract('timeout') || '300');
-  
+
   // Validate environment variables with helpful error messages
   const requiredEnvVars = ['API_KEY', 'DATABASE_URL', 'STORAGE_BUCKET'];
-  const missingVars = requiredEnvVars.filter(key => !opts.env[key]);
-  
+  const missingVars = requiredEnvVars.filter((key) => !opts.env[key]);
+
   if (missingVars.length > 0) {
     console.error('Missing required environment variables:');
-    missingVars.forEach(key => console.error(`  ${key}`));
+    missingVars.forEach((key) => console.error(`  ${key}`));
     console.error('\nSet these in your .env file or environment');
     Deno.exit(1);
   }
-  
+
   // Use environment variables safely
   const apiKey = opts.env['API_KEY']!; // Safe after validation
   const dbUrl = opts.env['DATABASE_URL']!;
-  
+
   // Feature flags
   const skipTests = opts.has('skip-tests');
   const dryRun = opts.has('dry-run');
   const forceUpdate = opts.has('force');
-  
+
   if (dryRun) {
     console.log('🔍 Dry run mode - no changes will be made');
   }
-  
+
   console.log(`Environment: ${environment}`);
   console.log(`Region: ${region}`);
   console.log(`Timeout: ${timeout}s`);
@@ -1488,13 +1574,12 @@ export default async function (args: CustomArgs, opts: CustomOptions) {
   try {
     // Validate prerequisites early
     await validatePrerequisites(opts);
-    
+
     // Main script logic with proper error boundaries
     const result = await performOperation(args, opts);
-    
+
     console.log('✅ Operation completed successfully');
     return result;
-    
   } catch (error) {
     // Structured error handling
     if (error instanceof ValidationError) {
@@ -1502,26 +1587,26 @@ export default async function (args: CustomArgs, opts: CustomOptions) {
       console.error('💡 Suggestion:', error.suggestion);
       Deno.exit(1);
     }
-    
+
     if (error instanceof CommandError) {
       console.error('❌ Command execution failed:', error.command);
       console.error('📝 Output:', error.output);
-      
+
       if (opts.has('debug')) {
         console.error('🐛 Full error:', error);
       }
-      
+
       Deno.exit(error.exitCode || 1);
     }
-    
+
     // Unexpected errors
     console.error('💥 Unexpected error occurred:');
     console.error(error);
-    
+
     if (opts.has('verbose')) {
       console.error('Stack trace:', error.stack);
     }
-    
+
     Deno.exit(1);
   }
 }
@@ -1548,15 +1633,15 @@ class CommandError extends Error {
 async function validatePrerequisites(opts: CustomOptions): Promise<void> {
   // Check required environment variables
   const requiredEnvVars = ['API_KEY', 'PROJECT_ID'];
-  const missing = requiredEnvVars.filter(key => !opts.env[key]);
-  
+  const missing = requiredEnvVars.filter((key) => !opts.env[key]);
+
   if (missing.length > 0) {
     throw new ValidationError(
       `Missing required environment variables: ${missing.join(', ')}`,
       'Create a .env file or set these variables in your environment'
     );
   }
-  
+
   // Check required commands are available
   const requiredCommands = ['docker', 'gcloud'];
   for (const cmd of requiredCommands) {
@@ -1569,7 +1654,7 @@ async function validatePrerequisites(opts: CustomOptions): Promise<void> {
       );
     }
   }
-  
+
   // Validate project structure
   if (!opts.metaConfig) {
     throw new ValidationError(
@@ -1604,7 +1689,7 @@ import { $ } from 'npm:zx';
 
 export default async function (args: CustomArgs, opts: CustomOptions) {
   const { has, extract, env } = opts;
-  
+
   // Graceful fallbacks for optional features
   let projectName: string;
   try {
@@ -1613,7 +1698,7 @@ export default async function (args: CustomArgs, opts: CustomOptions) {
     projectName = extract('name') || 'unnamed-project';
     console.warn('⚠️  Using fallback project name:', projectName);
   }
-  
+
   // Optional cloud build with local fallback
   if (env['CLOUD_BUILD_ENABLED'] === 'true') {
     try {
@@ -1622,7 +1707,7 @@ export default async function (args: CustomArgs, opts: CustomOptions) {
     } catch (error) {
       console.warn('⚠️  Cloud build failed, falling back to local build');
       console.warn('Error:', error.message);
-      
+
       await dockerRegister({
         component: projectName,
         amd64: true,
@@ -1633,7 +1718,7 @@ export default async function (args: CustomArgs, opts: CustomOptions) {
     console.log('🏠 Using local build');
     await dockerRegister({ component: projectName, amd64: true });
   }
-  
+
   // Optional features with graceful degradation
   if (has('with-tests')) {
     try {
@@ -1657,50 +1742,54 @@ import { $ } from 'npm:zx';
 
 export default async function (args: CustomArgs, opts: CustomOptions) {
   const { env, extract } = opts;
-  
+
   // ✅ GOOD: Validate and sanitize inputs
   const serviceName = args[0];
   if (!serviceName || !/^[a-zA-Z0-9-]+$/.test(serviceName)) {
-    throw new Error('Invalid service name. Use alphanumeric characters and hyphens only.');
+    throw new Error(
+      'Invalid service name. Use alphanumeric characters and hyphens only.'
+    );
   }
-  
+
   // ✅ GOOD: Use environment variables for secrets
   const apiKey = env['API_KEY'];
   if (!apiKey) {
     throw new Error('API_KEY environment variable is required');
   }
-  
+
   // ✅ GOOD: Encrypt sensitive data before logging
   const encryptionKey = env['ENCRYPTION_KEY'];
   if (encryptionKey && opts.has('verbose')) {
     const maskedKey = apiKey.slice(0, 4) + '****' + apiKey.slice(-4);
     console.log(`Using API key: ${maskedKey}`);
   }
-  
+
   // ✅ GOOD: Validate file paths to prevent path traversal
   const configPath = extract('config');
   if (configPath) {
     const allowedPaths = ['./config/', './env/'];
-    const isAllowed = allowedPaths.some(allowed => 
-      configPath.startsWith(allowed) && !configPath.includes('..')
+    const isAllowed = allowedPaths.some(
+      (allowed) => configPath.startsWith(allowed) && !configPath.includes('..')
     );
-    
+
     if (!isAllowed) {
-      throw new Error('Invalid config path. Must be within allowed directories.');
+      throw new Error(
+        'Invalid config path. Must be within allowed directories.'
+      );
     }
   }
-  
+
   // ✅ GOOD: Use parameterized commands to prevent injection
   const tag = extract('tag') || 'latest';
   if (!/^[a-zA-Z0-9._-]+$/.test(tag)) {
     throw new Error('Invalid tag format');
   }
-  
+
   await $`docker build -t ${serviceName}:${tag} .`;
-  
+
   // ❌ BAD: Never do this - direct string interpolation
   // await $`docker build -t ${args[0]}:${extract('tag')} .`;
-  
+
   // ✅ GOOD: Clean up sensitive data
   if (env['TEMP_TOKEN']) {
     delete env['TEMP_TOKEN'];
@@ -1715,18 +1804,18 @@ import type { CustomArgs, CustomOptions } from 'jsr:@ghostmind/run';
 
 export default async function (args: CustomArgs, opts: CustomOptions) {
   const environment = args[0];
-  
+
   if (environment === 'production') {
     console.log('🚀 Production deployment checklist:');
-    
+
     const checks = [
       {
         name: 'Environment variables',
         check: () => {
           const required = ['DATABASE_URL', 'API_KEY', 'PROJECT_ID'];
-          return required.every(key => opts.env[key]);
+          return required.every((key) => opts.env[key]);
         },
-        fix: 'Set missing environment variables'
+        fix: 'Set missing environment variables',
       },
       {
         name: 'Tests passing',
@@ -1738,7 +1827,7 @@ export default async function (args: CustomArgs, opts: CustomOptions) {
             return false;
           }
         },
-        fix: 'Fix failing tests before deploying'
+        fix: 'Fix failing tests before deploying',
       },
       {
         name: 'Security scan',
@@ -1751,35 +1840,35 @@ export default async function (args: CustomArgs, opts: CustomOptions) {
             return false;
           }
         },
-        fix: 'Run npm audit fix or use --skip-security'
-      }
+        fix: 'Run npm audit fix or use --skip-security',
+      },
     ];
-    
+
     let allPassed = true;
-    
+
     for (const checkItem of checks) {
       const passed = await checkItem.check();
       const status = passed ? '✅' : '❌';
       console.log(`${status} ${checkItem.name}`);
-      
+
       if (!passed) {
         console.log(`   💡 ${checkItem.fix}`);
         allPassed = false;
       }
     }
-    
+
     if (!allPassed && !opts.has('force')) {
       console.log('\n❌ Pre-deployment checks failed.');
       console.log('💡 Use --force to deploy anyway (not recommended)');
       Deno.exit(1);
     }
-    
+
     if (!allPassed && opts.has('force')) {
       console.log('\n⚠️  Forcing deployment despite failed checks...');
-      await new Promise(resolve => setTimeout(resolve, 3000)); // Give time to cancel
+      await new Promise((resolve) => setTimeout(resolve, 3000)); // Give time to cancel
     }
   }
-  
+
   console.log(`Deploying to ${environment}...`);
 }
 ```
@@ -1788,6 +1877,9 @@ export default async function (args: CustomArgs, opts: CustomOptions) {
 
 When tasked to create a custom script, the AI must ensure:
 
+- [ ] **DENO RUNTIME:** The script is written specifically for Deno, not Node.js.
+- [ ] **DENO IMPORTS:** All imports use proper Deno syntax (`jsr:`, `npm:` prefixes, no bare imports).
+- [ ] **DENO APIs:** Uses Deno's built-in APIs (`Deno.readTextFile`, `Deno.env`, etc.) instead of Node.js equivalents.
 - [ ] The file is created in the correct `scripts/` directory (as defined in `meta.json`).
 - [ ] The file exports a `default async function` with signature `(args: CustomArgs, opts: CustomOptions)`.
 - [ ] `CustomArgs` and `CustomOptions` types are imported from `jsr:@ghostmind/run`.
@@ -1796,4 +1888,5 @@ When tasked to create a custom script, the AI must ensure:
 - [ ] The script is robust and handles potential missing arguments or flags gracefully.
 - [ ] The script uses `zx` (imported from `npm:zx`) for shell commands and correctly handles async operations.
 - [ ] If using core utilities, they are imported from `jsr:@ghostmind/run`.
+- [ ] **NO NODE.JS PATTERNS:** Avoids `require()`, `process.env`, Node.js `fs` module, etc.
 - [ ] The AI returns a summary of the script created and how to run it with example command-line usage.
