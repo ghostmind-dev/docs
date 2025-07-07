@@ -2,11 +2,11 @@
 
 This guide tells an AI **exactly** what to do when implementing the **Docker Pattern**—creating container build definitions within the standardized directory structure. This is one of the five core patterns (app, docker, infra, local, scripts) defined in our system.
 
-**📄 Base Reference:** [base.md](https://github.com/ghostmind-dev/docs/blob/main/docs/app/base.md)
+**📋 Base Reference:** [base.md](https://github.com/ghostmind-dev/docs/blob/main/docs/app/base.md)
 
 > 🧠 **IMPORTANT:** The AI must read and understand `base.md` first to learn about all five directory patterns, then return here for specific Docker Pattern implementation details.
 
-**📍 Pattern Focus:** This document covers the `docker/` directory pattern only. For other patterns, refer to their respective documentation.
+**🎯 Pattern Focus:** This document covers the `docker/` directory pattern only. For other patterns, refer to their respective documentation.
 
 ---
 
@@ -79,7 +79,7 @@ Your Docker pattern **must** follow this structure:
 /
 ├─ docker/
 │  ├─ Dockerfile
-│  ├─ <supporting files, if any>
+│  └─ <supporting files, if any>
 ```
 
 - The main `Dockerfile` always lives inside `docker/`.
@@ -215,5 +215,7 @@ All Compose and deployment logic assumes the image and `docker/` structure descr
 Once the Docker pattern is implemented, the next pattern can be handled by referencing the relevant documentation for infra, app, local, or scripts as needed.
 
 ---
+
+<!-- we were there -->
 
 Let me know if you want tweaks, more technical detail, code examples, or an even more AI-instructional voice!
