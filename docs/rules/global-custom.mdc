@@ -1,0 +1,144 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+
+# Run Custom Development Utility System
+
+This project uses a powerful development utility system called **`run custom`** for automating project tasks. This is the primary tool for running scripts and should be used for most development automation needs.
+
+## How Run Custom Works
+
+The `run custom` system executes TypeScript scripts from the [scripts/](mdc:scripts) directory using a standardized pattern:
+
+```bash
+run custom <script_name> [arguments...] [--flags]
+```
+
+## Script Structure Pattern
+
+All custom scripts follow this exact pattern:
+
+```typescript
+import type { CustomArgs, CustomOptions } from 'jsr:@ghostmind/run';
+import { $ } from 'npm:zx';
+
+export default async function (args: CustomArgs, opts: CustomOptions) {
+  // Script logic here
+  // args[0] = first argument, args[1] = second argument, etc.
+  // opts.has('flag-name') = check for boolean flags
+  // opts.extract('key') = extract key-value flags
+  // opts.env = environment variables
+  // opts.currentPath = current working directory
+}
+```
+
+## Current Scripts in This Project
+
+### Test Script ([scripts/test.ts](mdc:scripts/test.ts))
+
+The test script is used to test DevContainer features locally. It supports multiple modes and options:
+
+#### Basic Usage
+
+```bash
+# List all available features (no arguments)
+run custom test
+
+# Test all scenarios for a specific feature
+run custom test <feature-name>
+
+# Test a specific scenario for a feature
+run custom test <feature-name> <scenario-name>
+```
+
+#### Information Commands
+
+```bash
+# List available scenarios for a feature (as argument, not flag)
+run custom test <feature-name> list-scenarios
+
+# Examples:
+run custom test aws list-scenarios
+run custom test init list-scenarios
+```
+
+#### Testing Options (as arguments, not flags)
+
+```bash
+# Run with verbose output
+run custom test <feature> verbose
+run custom test <feature> <scenario> verbose
+
+# Keep containers after test (for debugging)
+run custom test <feature> no-cleanup
+
+# Skip installing common utilities
+run custom test <feature> no-common-utils
+
+# Combine options
+run custom test <feature> verbose no-cleanup
+```
+
+#### Complete Examples
+
+```bash
+# List all testable features
+run custom test
+
+# Test all scenarios for the init feature
+run custom test init
+
+# Test specific scenario with verbose output
+run custom test init test_enabled verbose
+
+# List scenarios for a feature
+run custom test init list-scenarios
+
+# Test with debugging (keep containers)
+run custom test aws no-cleanup verbose
+```
+
+#### Important Notes for Test Script
+
+- Features must have both `features/src/<name>/` and `features/test/<name>/` directories to be testable
+- Each feature needs a `scenarios.json` file in its test directory
+- Options are passed as **arguments**, not as `--flags`
+- The test system automatically includes common-utils unless `no-common-utils` is specified
+- Use `list-scenarios` as an argument (not `--list-scenarios` flag)
+- Available features are shown when running `run custom test` with no arguments
+
+### Publish Script ([scripts/publish.ts](mdc:scripts/publish.ts))
+
+```bash
+# Publish all DevContainer features to registry
+run custom publish
+```
+
+## Key Features of Run Custom
+
+- **Rich Context**: Scripts receive environment variables, current path, and utility functions
+- **Argument Parsing**: Easy access to positional arguments and flags
+- **ZX Integration**: Built-in shell command execution with `$` from npm:zx
+- **Type Safety**: Full TypeScript support with proper type definitions
+- **Development Utility**: This is the main development tool - most scripts you create should use this system
+
+## When to Use Run Custom
+
+Use `run custom` for:
+
+- Build automation
+- Testing workflows
+- Publishing and deployment
+- Development setup tasks
+- Complex multi-step operations
+- Project-specific utilities
+
+## Important Notes
+
+- All scripts must be in the [scripts/](mdc:scripts) directory
+- Scripts must export a default async function
+- Always import types from `jsr:@ghostmind/run`
+- Use `npm:zx` for shell operations
+- This is the preferred way to create development automation in this project
