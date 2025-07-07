@@ -1,12 +1,12 @@
 ## Container Build Guide - Docker Pattern
 
-This guide tells an AI **exactly** what to do when implementing the **Docker Pattern**—creating container build definitions within the standardized directory structure. This is one of the five core patterns (app, docker, infra, local, scripts) defined in our system.
+This guide tells an AI **exactly** what to do when implementing the **Docker Pattern**âcreating container build definitions within the standardized directory structure. This is one of the five core patterns (app, docker, infra, local, scripts) defined in our system.
 
-**📄 Base Reference:** [base.md](https://github.com/ghostmind-dev/docs/blob/main/docs/app/base.md)
+**ð Base Reference:** [base.md](https://github.com/ghostmind-dev/docs/blob/main/docs/app/base.md)
 
-> 🧠 **IMPORTANT:** The AI must read and understand `base.md` first to learn about all five directory patterns, then return here for specific Docker Pattern implementation details.
+> ð§  **IMPORTANT:** The AI must read and understand `base.md` first to learn about all five directory patterns, then return here for specific Docker Pattern implementation details.
 
-**📍 Pattern Focus:** This document covers the `docker/` directory pattern only. For other patterns, refer to their respective documentation.
+**ð Pattern Focus:** This document covers the `docker/` directory pattern only. For other patterns, refer to their respective documentation.
 
 ---
 
@@ -18,9 +18,9 @@ The **Docker Pattern** is responsible for building the container images used to 
 
 ---
 
-## 🚨 CRITICAL: Docker BuildX Multi-Platform Requirements
+## ð¨ CRITICAL: Docker BuildX Multi-Platform Requirements
 
-> ⚠️ **MANDATORY COMPLIANCE:** All Docker builds in this system use **Docker BuildX** for multi-platform building. This is a core architectural requirement and must be considered in every Dockerfile you create.
+> â ï¸ **MANDATORY COMPLIANCE:** All Docker builds in this system use **Docker BuildX** for multi-platform building. This is a core architectural requirement and must be considered in every Dockerfile you create.
 
 ### Key BuildX Requirements:
 
@@ -31,14 +31,14 @@ The **Docker Pattern** is responsible for building the container images used to 
 
 ### Common BuildX Pitfalls to Avoid:
 
-❌ **AVOID:**
+â **AVOID:**
 
 - Using architecture-specific base images
 - Hardcoding platform-specific paths or binaries
 - Installing packages that don't exist on all target platforms
 - Using `RUN uname -m` or similar architecture detection in builds
 
-✅ **BEST PRACTICES:**
+â **BEST PRACTICES:**
 
 - Use official multi-platform base images (e.g., `node:18-alpine`, `golang:1.21-alpine`)
 - Let package managers handle architecture differences
@@ -48,17 +48,17 @@ The **Docker Pattern** is responsible for building the container images used to 
 ### Example Multi-Platform Aware Dockerfile:
 
 ```dockerfile
-# ✅ Good: Official multi-platform base image
+# â Good: Official multi-platform base image
 FROM node:18-alpine AS builder
 
-# ✅ Good: Standard package installation works across platforms
+# â Good: Standard package installation works across platforms
 RUN apk add --no-cache git
 
 WORKDIR /app
 COPY package*.json ./
 RUN npm ci --only=production
 
-# ✅ Good: Multi-stage build for smaller final image
+# â Good: Multi-stage build for smaller final image
 FROM node:18-alpine
 WORKDIR /app
 COPY --from=builder /app/node_modules ./node_modules
@@ -77,9 +77,9 @@ Your Docker pattern **must** follow this structure:
 
 ```
 /
-├─ docker/
-│  ├─ Dockerfile
-│  ├─ <supporting files, if any>
+ââ docker/
+â  ââ Dockerfile
+â  ââ <supporting files, if any>
 ```
 
 - The main `Dockerfile` always lives inside `docker/`.
@@ -87,7 +87,7 @@ Your Docker pattern **must** follow this structure:
 
 ---
 
-### 🚨 CRITICAL: Build Context and File Paths
+### ð¨ CRITICAL: Build Context and File Paths
 
 **This is the most common source of Docker build failures.** Pay close attention to the build context configuration in `meta.json`:
 
@@ -124,14 +124,14 @@ The `context_dir` setting in your `meta.json` determines the Docker build contex
 
 #### Common Error Pattern
 
-❌ **WRONG:** When `context_dir: "app"` is set but Dockerfile uses:
+â **WRONG:** When `context_dir: "app"` is set but Dockerfile uses:
 
 ```dockerfile
 COPY app/go.mod app/go.sum ./  # Fails: looks for app/app/go.mod
 COPY app/src/ ./src/           # Fails: looks for app/app/src/
 ```
 
-✅ **CORRECT:** When `context_dir: "app"` is set, use:
+â **CORRECT:** When `context_dir: "app"` is set, use:
 
 ```dockerfile
 COPY go.mod go.sum ./          # Correct: looks for app/go.mod
@@ -204,7 +204,7 @@ All Compose and deployment logic assumes the image and `docker/` structure descr
 2. Add your `Dockerfile` and any supporting files inside `docker/`.
 3. Set the correct image name in `meta.json` using the format: `gcr.io/ghostmind-core/APP_NAME`.
 4. Make sure `root` is `"docker"` in the Docker block.
-5. **🚨 CRITICAL:** Set the required `context_dir` property in `meta.json` and adjust COPY commands accordingly.
+5. **ð¨ CRITICAL:** Set the required `context_dir` property in `meta.json` and adjust COPY commands accordingly.
 6. Test your Docker build to ensure file paths are correct.
 7. Do **not** touch code or files outside of `docker/` for this pattern.
 8. Refer back to [`base.md`](https://github.com/ghostmind-dev/docs/blob/main/docs/app/base.md) if unsure.
@@ -217,3 +217,7 @@ Once the Docker pattern is implemented, the next pattern can be handled by refer
 ---
 
 Let me know if you want tweaks, more technical detail, code examples, or an even more AI-instructional voice!
+
+---
+
+<!-- We were here! -->
