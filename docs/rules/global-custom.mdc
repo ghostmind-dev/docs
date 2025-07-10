@@ -1,144 +1,87 @@
 ---
-description:
+description: Global MCP documentation management rules and guidelines
 globs:
 alwaysApply: true
 ---
 
-# Run Custom Development Utility System
+# Global Documentation Management MCP
 
-This project uses a powerful development utility system called **`run custom`** for automating project tasks. This is the primary tool for running scripts and should be used for most development automation needs.
+This project uses a specialized **Model Context Protocol (MCP) Server** for managing global documentation across remote GitHub repositories. When you need to interact with, modify, or manage global documentation, you must use the documentation management MCP tool specifically.
 
-## How Run Custom Works
+## When to Use the Documentation Management MCP
 
-The `run custom` system executes TypeScript scripts from the [scripts/](mdc:scripts) directory using a standardized pattern:
+Use the documentation management MCP tool when you need to:
 
-```bash
-run custom <script_name> [arguments...] [--flags]
+- Access global documentation configurations
+- Browse remote documentation repositories
+- Read content from global documentation files
+- Update or modify existing documentation
+- Add new documentation files
+- Manage documentation across organizational repositories
+
+## Documentation Management Tool Usage
+
+### Always Use This Specific Request
+
+When you want to call the documentation management tool, use this exact phrasing:
+
+**"I want to use the global documentation management MCP"**
+
+This ensures the correct MCP server is invoked for documentation operations.
+
+## Available Documentation Configurations
+
+The system provides access to these global documentation areas:
+
+- **app** - Application build guidelines and organizational standards
+- **base** - Base configuration and development environment setup
+- **custom** - Customization guidelines and configuration options
+- **docker** - Docker configuration and containerization documentation
+- **infra** - Infrastructure setup and deployment documentation
+- **local** - Local development environment setup and configuration
+- **rules** - Global custom rules and development practice guidelines
+
+## Standard Documentation Workflow
+
+### 1. Discovery Phase
+```
+"I want to use the global documentation management MCP to list available documentation"
 ```
 
-## Script Structure Pattern
-
-All custom scripts follow this exact pattern:
-
-```typescript
-import type { CustomArgs, CustomOptions } from 'jsr:@ghostmind/run';
-import { $ } from 'npm:zx';
-
-export default async function (args: CustomArgs, opts: CustomOptions) {
-  // Script logic here
-  // args[0] = first argument, args[1] = second argument, etc.
-  // opts.has('flag-name') = check for boolean flags
-  // opts.extract('key') = extract key-value flags
-  // opts.env = environment variables
-  // opts.currentPath = current working directory
-}
+### 2. Exploration Phase
+```
+"I want to use the global documentation management MCP to examine the [config_name] documentation"
 ```
 
-## Current Scripts in This Project
-
-### Test Script ([scripts/test.ts](mdc:scripts/test.ts))
-
-The test script is used to test DevContainer features locally. It supports multiple modes and options:
-
-#### Basic Usage
-
-```bash
-# List all available features (no arguments)
-run custom test
-
-# Test all scenarios for a specific feature
-run custom test <feature-name>
-
-# Test a specific scenario for a feature
-run custom test <feature-name> <scenario-name>
+### 3. Modification Phase
+```
+"I want to use the global documentation management MCP to update [specific_file] in [config_name]"
 ```
 
-#### Information Commands
+## Key Principles
 
-```bash
-# List available scenarios for a feature (as argument, not flag)
-run custom test <feature-name> list-scenarios
-
-# Examples:
-run custom test aws list-scenarios
-run custom test init list-scenarios
-```
-
-#### Testing Options (as arguments, not flags)
-
-```bash
-# Run with verbose output
-run custom test <feature> verbose
-run custom test <feature> <scenario> verbose
-
-# Keep containers after test (for debugging)
-run custom test <feature> no-cleanup
-
-# Skip installing common utilities
-run custom test <feature> no-common-utils
-
-# Combine options
-run custom test <feature> verbose no-cleanup
-```
-
-#### Complete Examples
-
-```bash
-# List all testable features
-run custom test
-
-# Test all scenarios for the init feature
-run custom test init
-
-# Test specific scenario with verbose output
-run custom test init test_enabled verbose
-
-# List scenarios for a feature
-run custom test init list-scenarios
-
-# Test with debugging (keep containers)
-run custom test aws no-cleanup verbose
-```
-
-#### Important Notes for Test Script
-
-- Features must have both `features/src/<name>/` and `features/test/<name>/` directories to be testable
-- Each feature needs a `scenarios.json` file in its test directory
-- Options are passed as **arguments**, not as `--flags`
-- The test system automatically includes common-utils unless `no-common-utils` is specified
-- Use `list-scenarios` as an argument (not `--list-scenarios` flag)
-- Available features are shown when running `run custom test` with no arguments
-
-### Publish Script ([scripts/publish.ts](mdc:scripts/publish.ts))
-
-```bash
-# Publish all DevContainer features to registry
-run custom publish
-```
-
-## Key Features of Run Custom
-
-- **Rich Context**: Scripts receive environment variables, current path, and utility functions
-- **Argument Parsing**: Easy access to positional arguments and flags
-- **ZX Integration**: Built-in shell command execution with `$` from npm:zx
-- **Type Safety**: Full TypeScript support with proper type definitions
-- **Development Utility**: This is the main development tool - most scripts you create should use this system
-
-## When to Use Run Custom
-
-Use `run custom` for:
-
-- Build automation
-- Testing workflows
-- Publishing and deployment
-- Development setup tasks
-- Complex multi-step operations
-- Project-specific utilities
+- **Always specify the MCP**: Never assume which tool to use - explicitly request the documentation management MCP
+- **Remote-first**: All operations work directly with remote GitHub repositories
+- **Pull Request workflow**: All modifications create pull requests for review
+- **No local cloning**: Everything happens via GitHub API calls
+- **Structured access**: Use configuration names to access specific documentation areas
 
 ## Important Notes
 
-- All scripts must be in the [scripts/](mdc:scripts) directory
-- Scripts must export a default async function
-- Always import types from `jsr:@ghostmind/run`
-- Use `npm:zx` for shell operations
-- This is the preferred way to create development automation in this project
+- All documentation operations are performed remotely via GitHub API
+- Changes are submitted as pull requests for review and approval
+- The system maintains security by restricting access to predefined documentation repositories
+- Always use the exact phrase "global documentation management MCP" to ensure proper tool selection
+- This is the preferred and required method for managing organizational documentation
+
+## Examples
+
+### Correct Usage
+✅ "I want to use the global documentation management MCP to update the app documentation"
+✅ "Use the global documentation management MCP to check what infrastructure docs are available"
+✅ "I need to add a new rule using the global documentation management MCP"
+
+### Incorrect Usage
+❌ "Update the documentation" (too vague - doesn't specify MCP)
+❌ "Use the GitHub tool" (not specific enough)
+❌ "Edit the docs" (doesn't invoke the correct MCP)
