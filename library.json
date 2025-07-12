@@ -1,0 +1,16 @@
+[
+    {
+        "name": "ghostmind-app-fundamentals",
+        "description": "Documentation defining the basics of how to build an app in the ghostmind.dev development system style.",
+        "repo": "ghostmind-dev/docs",
+        "path": "docs/app",
+        "url": "https://github.com/ghostmind-dev/docs/tree/main/docs/app"
+    },
+    {
+        "name": "ghostmind-cursor-rules",
+        "description": "Cursor IDE rules and configurations for the ghostmind.dev development system.",
+        "repo": "ghostmind-dev/docs",
+        "path": "docs/rules",
+        "url": "https://github.com/ghostmind-dev/docs/tree/main/docs/rules"
+    }
+]
