@@ -2,11 +2,11 @@
 
 This guide tells an AI **exactly** what to do when implementing the **Local Pattern** - creating local development Docker Compose setups within the standardized directory structure. This is one of the five core patterns (app, docker, infra, local, scripts) defined in our system.
 
-**📄 Base Reference:** [base.md](https://github.com/ghostmind-dev/docs/blob/main/docs/app/base.md)
+**📚 Base Reference:** [base.md](https://github.com/ghostmind-dev/docs/blob/main/docs/app/base.md)
 
 > 🧠 **IMPORTANT:** The AI must read and understand `base.md` first to learn about all five directory patterns, then return here for specific Local Pattern implementation details.
 
-**📍 Pattern Focus:** This document covers the `local/` directory pattern only. For other patterns, refer to their respective documentation.
+**🎯 Pattern Focus:** This document covers the `local/` directory pattern only. For other patterns, refer to their respective documentation.
 
 ---
 
@@ -168,6 +168,33 @@ After adding or modifying the local compose file, **update the `meta.json`** to 
 - **Ensure proper port mapping**: Container port (e.g., 3000) must be mapped to host port (e.g., 3001)
 - **Check container status**: Use `docker compose ps` to verify services are running with correct port mappings
 - **Verify network binding**: Ensure the app binds to `0.0.0.0` not just `localhost` inside the container
+
+# 10. Future Exploration Ideas
+
+## Unified Compose Architecture
+
+**💡 Idea to Explore:** Investigate the possibility of having only one compose file for all sub-apps/sub-services in a multi-service architecture.
+
+**Potential Benefits:**
+- Simplified orchestration across all services
+- Centralized configuration management
+- Easier cross-service communication and networking
+- Reduced complexity in managing multiple compose files
+
+**Considerations:**
+- How to maintain modularity and separation of concerns
+- Environment variable management across different services
+- Build context organization for multiple apps
+- Service discovery and inter-service communication patterns
+- Impact on development workflow and team collaboration
+
+**Research Areas:**
+- Docker Compose include/extends functionality
+- Service profiles for selective service startup
+- Dynamic service configuration based on environment
+- Integration with existing `meta.json` patterns
+
+> 🔍 **Note:** This is a conceptual exploration for future development. Current implementation should follow the established pattern of individual compose files per service.
 
 ---
 
