@@ -14,6 +14,11 @@ Docker Compose in Ghostmind's system:
 
 ## Compose Configuration in meta.json
 
+**⚠️ ALWAYS fetch the schema first:**
+```
+https://raw.githubusercontent.com/ghostmind-dev/run/refs/heads/main/meta/schema.json
+```
+
 The Compose configuration is defined under the `compose` property in `meta.json`:
 
 ```json
@@ -40,6 +45,8 @@ The Compose configuration is defined under the `compose` property in `meta.json`
 - **Default**: `docker-compose.yaml` if not specified
 - **Example**: `"filename": "compose.yaml"`
 - **Result**: Uses `/path/to/project/local/compose.yaml`
+
+**For complete `compose` property structure:** Fetch the schema
 
 ## Critical Environment Variables Usage
 

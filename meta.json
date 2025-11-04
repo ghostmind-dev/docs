@@ -3,96 +3,33 @@
   "name": "docs",
   "type": "app",
   "routines": {
-    "init_tmux": "run tmux init demux",
-    "attach_tmux": "run tmux attach demux",
-    "terminate_tmux": "run tmux terminate demux"
+    "init_tmux": "run tmux init docs",
+    "attach_tmux": "run tmux attach docs",
+    "terminate_tmux": "run tmux terminate docs"
   },
   "tmux": {
     "sessions": [
       {
-        "name": "demux",
+        "name": "docs",
         "windows": [
           {
-            "name": "single-pane",
+            "name": "claude",
             "layout": "compact",
             "compact": {
               "type": "single",
               "panes": {
-                "main": "echo 'Single Pane Window'"
+                "main": "Claude"
               }
             }
           },
           {
-            "name": "compact-1",
+            "name": "shell",
             "layout": "compact",
             "compact": {
-              "type": "two-by-two",
+              "type": "single",
               "panes": {
-                "top-left": "echo 'Top Left'",
-                "top-right": "echo 'Top Right'",
-                "bottom-left": "echo 'Bottom Left'",
-                "bottom-right": "echo 'Bottom Right'"
+                "main": "$SHELL"
               }
-            }
-          },
-          {
-            "name": "compact-2",
-            "layout": "compact",
-            "compact": {
-              "type": "two-by-two",
-              "panes": {
-                "pane-1": "echo 'Pane 1'",
-                "pane-2": "echo 'Pane 2'",
-                "pane-3": "echo 'Pane 3'",
-                "pane-4": "echo 'Pane 4'"
-              }
-            }
-          },
-          {
-            "name": "grid-vertical",
-            "layout": "grid",
-            "grid": {
-              "type": "vertical",
-              "panes": [
-                {
-                  "name": "left",
-                  "command": "echo 'Left Pane'"
-                },
-                {
-                  "name": "right",
-                  "command": "echo 'Right Pane'"
-                }
-              ]
-            }
-          },
-          {
-            "name": "sections-split",
-            "layout": "sections",
-            "section": {
-              "split": "vertical",
-              "items": [
-                {
-                  "name": "left-main",
-                  "command": "echo 'Main Left'",
-                  "size": "50%"
-                },
-                {
-                  "split": "horizontal",
-                  "size": "50%",
-                  "items": [
-                    {
-                      "name": "top-right",
-                      "command": "echo 'Top Right Row'",
-                      "size": "50%"
-                    },
-                    {
-                      "name": "bottom-right",
-                      "command": "echo 'Bottom Right Row'",
-                      "size": "50%"
-                    }
-                  ]
-                }
-              ]
             }
           }
         ]

@@ -14,6 +14,11 @@ Terraform in Ghostmind's system:
 
 ## Terraform Configuration in meta.json
 
+**⚠️ ALWAYS fetch the schema first:**
+```
+https://raw.githubusercontent.com/ghostmind-dev/run/refs/heads/main/meta/schema.json
+```
+
 The Terraform configuration is defined under the `terraform` property in `meta.json`:
 
 ```json
@@ -45,6 +50,8 @@ The Terraform configuration is defined under the `terraform` property in `meta.j
 - **Purpose**: List of Docker container configurations to deploy
 - **Example**: `["default"]` references the "default" docker configuration from meta.json
 - **Multiple containers**: `["api", "worker", "nginx"]` for multi-service deployments
+
+**For complete `terraform` property structure:** Fetch the schema
 
 ## Required Terraform File Structure
 

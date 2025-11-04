@@ -1,5 +1,16 @@
 # Tmux Layout Guide
 
+## Introduction
+
+Tmux layouts in the Ghostmind system are configured in `meta.json` and provide reproducible terminal session configurations for development workflows.
+
+**⚠️ ALWAYS fetch the schema first:**
+```
+https://raw.githubusercontent.com/ghostmind-dev/run/refs/heads/main/meta/schema.json
+```
+
+**For complete `tmux` property structure:** Fetch the schema
+
 The **Tmux Layout System** provides three powerful ways to create tmux layouts:
 
 1. **Compact Layout** - Minimal object-based configuration (recommended for most use cases)

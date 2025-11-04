@@ -14,6 +14,11 @@ Docker configurations in our system are:
 
 ## Docker Configuration in meta.json
 
+**⚠️ ALWAYS fetch the schema first:**
+```
+https://raw.githubusercontent.com/ghostmind-dev/run/refs/heads/main/meta/schema.json
+```
+
 The Docker configuration is defined under the `docker` property in `meta.json`:
 
 ```json
@@ -59,6 +64,8 @@ The Docker configuration is defined under the `docker` property in `meta.json`:
 - **Purpose**: Additional tags to apply to the image
 - **Type**: Array of strings
 - **Example**: `"tag_modifiers": ["latest", "v1.0.0"]`
+
+**For complete `docker` property structure:** Fetch the schema
 
 ## Multiple Docker Configurations
 

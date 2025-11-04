@@ -9,23 +9,20 @@
     "ghcr.io/ghostmind-dev/config/extensions:latest": {},
     "ghcr.io/ghostmind-dev/config/settings:latest": {},
     "ghcr.io/ghostmind-dev/config/ai:latest": {},
-    "ghcr.io/ghostmind-dev/init/init:latest": {
-      "resetLive": true
-    }
+    "ghcr.io/ghostmind-dev/init/init:latest": {}
   },
-  "postStartCommand": "deno run -A /usr/local/share/post-start.ts",
   "containerEnv": {
     "LOCALHOST_SRC": "${localWorkspaceFolder}",
     "SRC": "${containerWorkspaceFolder}"
   },
   "remoteEnv": {
-    "GITHUB_TOKEN": "${localEnv:GITHUB_TOKEN}",
     "VAULT_TOKEN": "${localEnv:VAULT_TOKEN}",
     "VAULT_ADDR": "${localEnv:VAULT_ADDR}"
   },
   "runArgs": [
     "--cap-add=CAP_IPC_LOCK",
     "--cap-add=NET_ADMIN",
-    "--network=host"
+    "--network=host",
+    "--name=docs"
   ]
 }
