@@ -1,30 +1,25 @@
 {
   "files.exclude": {
-    "**/dev": false,
-    "**/.devcontainer": false
+    "**/dev": true,
+    "**/.devcontainer": true,
+    "**/.gitignore": true,
+    "**/.git": true,
+    "**/.terraform": true,
+    "**/.tfstate": true,
+    "**/.npmrc": true,
+    "**/.dockerignore": true,
+    "**/package-lock.json": true,
+    "**/node_modules": true,
+    "**/__pycache__": true,
+    "**/.next": true,
+    "**/dist": true,
+    "**/.terraform.lock.hcl": true,
+    "**/.npmignore": true,
+    "**/.history": true
   },
   "deno.disablePaths": [],
-  "material-icon-theme.folders.associations": {},
-  "material-icon-theme.files.associations": {},
   "workbench.colorCustomizations": {
-    "gitDecoration.ignoredResourceForeground": "#482c7d",
-    "activityBar.activeBackground": "#65c89b",
-    "activityBar.background": "#65c89b",
-    "activityBar.foreground": "#15202b",
-    "activityBar.inactiveForeground": "#15202b99",
-    "activityBarBadge.background": "#945bc4",
-    "activityBarBadge.foreground": "#e7e7e7",
-    "commandCenter.border": "#15202b99",
-    "sash.hoverBorder": "#65c89b",
-    "statusBar.background": "#42b883",
-    "statusBar.foreground": "#15202b",
-    "statusBarItem.hoverBackground": "#359268",
-    "statusBarItem.remoteBackground": "#42b883",
-    "statusBarItem.remoteForeground": "#15202b",
-    "titleBar.activeBackground": "#42b883",
-    "titleBar.activeForeground": "#15202b",
-    "titleBar.inactiveBackground": "#42b88399",
-    "titleBar.inactiveForeground": "#15202b99"
+    "gitDecoration.ignoredResourceForeground": "#482c7d"
   },
   "peacock.remoteColor": "#42b883",
   "deno.enable": true

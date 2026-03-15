@@ -1,7 +1,7 @@
 {
-  "name": "system",
+  "name": "ghostmind-system",
   "description": "Ghostmind system plugins with skills for development workflows and AI image generation",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "author": {
     "name": "ghostmind-dev"
   }

@@ -5,14 +5,9 @@
   },
   "plugins": [
     {
-      "name": "system",
-      "source": "./plugins/system",
+      "name": "ghostmind-system",
+      "source": "./system",
       "description": "Ghostmind system plugin with skills for development workflows and AI image generation"
-    },
-    {
-      "name": "utils",
-      "source": "./plugins/utils",
-      "description": "Ghostmind utils plugin with skills for development workflows and AI image generation"
     }
   ]
 }
