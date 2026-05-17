@@ -4,13 +4,7 @@
   "type": "app",
   "routines": {
     "init_tmux": "run tmux init docs",
-    "attach_tmux": "run tmux attach docs",
-    "terminate_tmux": "run tmux terminate docs",
-    "claude_marketplace_add": "claude plugin marketplace add ./",
-    "claude_marketplace_remove": "claude plugin marketplace remove ghostmind",
-    "claude_plugin_install_system": "claude plugin install ghostmind-system",
-    "claude_skill_link_system": "ln -sfn ../../system/skills/system .claude/skills/system",
-    "claude_skill_unlink_system": "rm -f .claude/skills/system"
+    "terminate_tmux": "run tmux terminate docs"
   },
   "tmux": {
     "sessions": [
