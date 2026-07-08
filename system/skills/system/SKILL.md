@@ -555,6 +555,41 @@ Two rules distinguish the herdr config from the tmux config:
 
 Add a top-level `herdr` block with `workspaces`. Each workspace has a `label` (typically the project name), an optional `cwd` (relative to the meta.json location) and `env`, and `tabs`; each tab has a `label` and a layout (`compact`, `grid`, or `sections` — same vocabulary and grid types as tmux: `single`, `vertical`, `horizontal`, `two-by-two`, `main-side`).
 
+#### Optional Settings
+
+Everything below is optional; defaults reproduce the plain layout.
+
+| Level     | Field   | Effect                                                                                                          |
+| --------- | ------- | ---------------------------------------------------------------------------------------------------------------- |
+| workspace | `cwd`   | Working directory (relative to the meta.json location)                                                            |
+| workspace | `env`   | Environment variables (key-value object)                                                                          |
+| workspace | `focus` | Focus this workspace after init (init never steals focus by default)                                              |
+| tab       | `path`  | Starting directory for the tab's panes (relative to workspace cwd)                                                |
+| tab       | `env`   | Environment variables for the tab                                                                                  |
+| tab       | `focus` | Focus this tab after init                                                                                          |
+| pane      | `size`  | Override the layout's default proportions, e.g. `"75%"` — the paired pane gets the complement automatically       |
+| pane      | `path`  | Per-pane starting directory (relative to the tab path; the first pane of a layout always inherits the tab path)   |
+| pane      | `env`   | Per-pane environment variables (split-created panes only)                                                          |
+| pane      | `focus` | Focus this pane after init                                                                                         |
+| pane      | `zoom`  | Zoom (fullscreen) this pane after init; zooming also focuses it                                                    |
+
+Example — a main-side dev tab where the main pane takes 75% and the shell gets focus:
+
+```json
+{
+  "label": "dev",
+  "layout": "compact",
+  "compact": {
+    "type": "main-side",
+    "panes": [
+      { "name": "main", "size": "75%" },
+      { "name": "worker", "path": "sub", "env": { "MODE": "debug" } },
+      { "name": "execution-shell", "focus": true }
+    ]
+  }
+}
+```
+
 ```json
 {
   "herdr": {
