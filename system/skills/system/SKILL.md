@@ -5,14 +5,14 @@ description: >-
   meta.json in the Ghostmind development system. Trigger whenever the user wants to create a new
   app, service, API, or project — generate the skeleton (app/, docker/, infra/, scripts/, meta.json,
   .env.base, Readme.md). Also trigger when modifying meta.json, setting up Docker/Compose/Terraform
-  configurations, writing custom Deno scripts, configuring tmux sessions or herdr scenes, or
+  configurations, writing custom Deno scripts, configuring tmux sessions or herdr workspaces, or
   working with environment variables, devcontainers, SRC/LOCALHOST_SRC paths, or vault secrets.
   This is the go-to skill for any Ghostmind project setup, structure, or configuration work.
 ---
 
 # Ghostmind System
 
-This skill enables creating and configuring applications in the Ghostmind development system. The system is configuration-driven: `meta.json` is the central hub, and the `run` CLI (`jsr:@ghostmind/run`) orchestrates Docker, Compose, Terraform, Tmux, herdr scenes, custom scripts, routines, and secrets based on that configuration.
+This skill enables creating and configuring applications in the Ghostmind development system. The system is configuration-driven: `meta.json` is the central hub, and the `run` CLI (`jsr:@ghostmind/run`) orchestrates Docker, Compose, Terraform, Tmux, herdr workspaces, custom scripts, routines, and secrets based on that configuration.
 
 The primary use cases are **scaffolding new apps** and **modifying meta.json** quickly and correctly.
 
@@ -542,49 +542,43 @@ The `execution-shell` pane is a common pattern — an empty pane where AI agents
 
 ---
 
-### `herdr` — Scenes
+### `herdr` — Workspaces
 
-[herdr](https://github.com/ogulcancelik/herdr) is the terminal agent-multiplexer that will eventually replace tmux in the system; both configs coexist in meta.json during the transition. herdr itself has no "scene" concept — the `run` CLI provides it. A **scene** is a named, predefined arrangement of herdr **workspaces → tabs → panes** that maps to a named herdr session.
+[herdr](https://github.com/ogulcancelik/herdr) is the terminal agent-multiplexer that will eventually replace tmux in the system; both configs coexist in meta.json during the transition. The mapping mirrors tmux directly: **a project maps to ONE herdr workspace, and tmux windows map to herdr tabs**. Everything lives in herdr's default session, so the herdr sidebar shows one workspace per project.
 
-Two rules distinguish herdr scenes from the tmux config:
+Two rules distinguish the herdr config from the tmux config:
 
 1. **Panes are arrangement-only — no startup commands.** Each pane is either a bare name string, or an object with a `name` and a `description` documenting how the team (or an AI agent) should use that pane. Descriptions are documentation, never executed.
 2. **Compact panes are an ordered array** (top-left to bottom-right), not the name→command object tmux uses.
 
-#### Creating a Scene
+#### Creating a Workspace
 
-Add a top-level `herdr` block with `scenes`. Each scene has a `name` and `workspaces`; each workspace has a `label`, an optional `cwd` (relative to the meta.json location) and `env`, and `tabs`; each tab has a `label` and a layout (`compact`, `grid`, or `sections` — same vocabulary and grid types as tmux: `single`, `vertical`, `horizontal`, `two-by-two`, `main-side`).
+Add a top-level `herdr` block with `workspaces`. Each workspace has a `label` (typically the project name), an optional `cwd` (relative to the meta.json location) and `env`, and `tabs`; each tab has a `label` and a layout (`compact`, `grid`, or `sections` — same vocabulary and grid types as tmux: `single`, `vertical`, `horizontal`, `two-by-two`, `main-side`).
 
 ```json
 {
   "herdr": {
-    "scenes": [
+    "workspaces": [
       {
-        "name": "my-platform",
-        "workspaces": [
+        "label": "my-platform",
+        "tabs": [
           {
-            "label": "api",
-            "cwd": "app",
-            "tabs": [
-              {
-                "label": "dev",
-                "layout": "compact",
-                "compact": {
-                  "type": "main-side",
-                  "panes": [
-                    {
-                      "name": "server",
-                      "description": "long-running dev server, do not interrupt"
-                    },
-                    "logs",
-                    {
-                      "name": "execution-shell",
-                      "description": "run ad-hoc commands here without interrupting other panes"
-                    }
-                  ]
+            "label": "dev",
+            "layout": "compact",
+            "compact": {
+              "type": "main-side",
+              "panes": [
+                {
+                  "name": "server",
+                  "description": "long-running dev server, do not interrupt"
+                },
+                "logs",
+                {
+                  "name": "execution-shell",
+                  "description": "run ad-hoc commands here without interrupting other panes"
                 }
-              }
-            ]
+              ]
+            }
           }
         ]
       }
@@ -593,27 +587,27 @@ Add a top-level `herdr` block with `scenes`. Each scene has a `name` and `worksp
   "routines": {
     "herdr_init": "run herdr init my-platform --all",
     "herdr_attach": "run herdr attach my-platform",
-    "herdr_terminate": "run herdr terminate my-platform --delete"
+    "herdr_terminate": "run herdr terminate my-platform"
   }
 }
 ```
 
 #### Single vs Spread Across Multiple meta.json Files
 
-A scene can live entirely in one meta.json, or be spread across the project: the root meta.json and any sub-app meta.json can each contribute `workspaces` to the **same scene name** (a natural fit — herdr workspaces organize by repo/folder, so each app contributes its own workspace). `run herdr init <scene> --all` discovers every meta.json in the project that defines the scene and assembles them into one session, resolving each workspace's `cwd` relative to its own meta.json.
+A workspace can live entirely in one meta.json, or be spread across the project exactly like tmux windows: the root meta.json and any sub-app meta.json can each contribute `tabs` to the **same workspace label**. `run herdr init <workspace> --all` discovers every meta.json in the project that defines the workspace and merges all their tabs into it. Tab labels are prefixed with the contributing app's name (`api-dev`), mirroring tmux window naming, and each app's tabs open in that app's own directory.
 
 #### Commands
 
-| Command                                   | Purpose                                                              |
-| ----------------------------------------- | -------------------------------------------------------------------- |
-| `run herdr init <scene> [--all] [--reset]` | Build the scene (starts the herdr server headless if needed)         |
-| `run herdr attach <scene>`                | Attach the terminal UI to the scene's session                        |
-| `run herdr terminate <scene> [--delete]`  | Stop the session (`--delete` also removes stored session state)      |
-| `run herdr list`                          | List herdr sessions                                                  |
+| Command                                        | Purpose                                                                |
+| ---------------------------------------------- | ---------------------------------------------------------------------- |
+| `run herdr init <workspace> [--all] [--reset]` | Build the workspace (starts the herdr server headless if needed)       |
+| `run herdr attach [workspace]`                 | Attach the herdr UI, optionally focusing the named workspace           |
+| `run herdr terminate <workspace>`              | Close the workspace                                                    |
+| `run herdr list`                               | List open workspaces                                                   |
 
-**Gotcha:** like `run tmux init`, running `init` twice without `--reset` **appends** — you get duplicate workspaces with the same label. Use `--reset` to rebuild a scene cleanly.
+`init` is **idempotent**: re-running it reuses the existing workspace and skips tabs that already exist, so no duplicates. Use `--reset` to close and rebuild from scratch.
 
-herdr needs no configuration of its own: install with `brew install herdr`, and the server is managed automatically. Optional user keybindings/themes live in `~/.config/herdr/config.toml`.
+herdr needs no configuration of its own: install with `brew install herdr`, and the server is managed automatically. Optional user keybindings/themes live in `~/.config/herdr/config.toml`. To scope workspaces to a named herdr session instead of the default one, set the `HERDR_SESSION` environment variable before running the commands.
 
 ---
 
@@ -784,7 +778,7 @@ The `run` tool (`jsr:@ghostmind/run`) reads `meta.json` and orchestrates all com
 - `-c, --cible <env>` — Target environment (`local`, `prod`, `dev`). Sets `ENV` variable, which controls compose file selection via `compose.${ENV}.yaml`
 - `-p, --path <path>` — Run from a specific path
 
-Key capabilities: docker build/push, compose up/down/build, terraform activate/destroy, tmux init/attach/terminate, herdr scene init/attach/terminate, custom script execution, routine execution, vault import/export.
+Key capabilities: docker build/push, compose up/down/build, terraform activate/destroy, tmux init/attach/terminate, herdr workspace init/attach/terminate, custom script execution, routine execution, vault import/export.
 
 ---
 
