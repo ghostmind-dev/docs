@@ -5,14 +5,14 @@ description: >-
   meta.json in the Ghostmind development system. Trigger whenever the user wants to create a new
   app, service, API, or project — generate the skeleton (app/, docker/, infra/, scripts/, meta.json,
   .env.base, Readme.md). Also trigger when modifying meta.json, setting up Docker/Compose/Terraform
-  configurations, writing custom Deno scripts, configuring tmux sessions, or working with
-  environment variables, devcontainers, SRC/LOCALHOST_SRC paths, or vault secrets. This is the
-  go-to skill for any Ghostmind project setup, structure, or configuration work.
+  configurations, writing custom Deno scripts, configuring tmux sessions or herdr scenes, or
+  working with environment variables, devcontainers, SRC/LOCALHOST_SRC paths, or vault secrets.
+  This is the go-to skill for any Ghostmind project setup, structure, or configuration work.
 ---
 
 # Ghostmind System
 
-This skill enables creating and configuring applications in the Ghostmind development system. The system is configuration-driven: `meta.json` is the central hub, and the `run` CLI (`jsr:@ghostmind/run`) orchestrates Docker, Compose, Terraform, Tmux, custom scripts, routines, and secrets based on that configuration.
+This skill enables creating and configuring applications in the Ghostmind development system. The system is configuration-driven: `meta.json` is the central hub, and the `run` CLI (`jsr:@ghostmind/run`) orchestrates Docker, Compose, Terraform, Tmux, herdr scenes, custom scripts, routines, and secrets based on that configuration.
 
 The primary use cases are **scaffolding new apps** and **modifying meta.json** quickly and correctly.
 
@@ -542,6 +542,81 @@ The `execution-shell` pane is a common pattern — an empty pane where AI agents
 
 ---
 
+### `herdr` — Scenes
+
+[herdr](https://github.com/ogulcancelik/herdr) is the terminal agent-multiplexer that will eventually replace tmux in the system; both configs coexist in meta.json during the transition. herdr itself has no "scene" concept — the `run` CLI provides it. A **scene** is a named, predefined arrangement of herdr **workspaces → tabs → panes** that maps to a named herdr session.
+
+Two rules distinguish herdr scenes from the tmux config:
+
+1. **Panes are arrangement-only — no startup commands.** Each pane is either a bare name string, or an object with a `name` and a `description` documenting how the team (or an AI agent) should use that pane. Descriptions are documentation, never executed.
+2. **Compact panes are an ordered array** (top-left to bottom-right), not the name→command object tmux uses.
+
+#### Creating a Scene
+
+Add a top-level `herdr` block with `scenes`. Each scene has a `name` and `workspaces`; each workspace has a `label`, an optional `cwd` (relative to the meta.json location) and `env`, and `tabs`; each tab has a `label` and a layout (`compact`, `grid`, or `sections` — same vocabulary and grid types as tmux: `single`, `vertical`, `horizontal`, `two-by-two`, `main-side`).
+
+```json
+{
+  "herdr": {
+    "scenes": [
+      {
+        "name": "my-platform",
+        "workspaces": [
+          {
+            "label": "api",
+            "cwd": "app",
+            "tabs": [
+              {
+                "label": "dev",
+                "layout": "compact",
+                "compact": {
+                  "type": "main-side",
+                  "panes": [
+                    {
+                      "name": "server",
+                      "description": "long-running dev server, do not interrupt"
+                    },
+                    "logs",
+                    {
+                      "name": "execution-shell",
+                      "description": "run ad-hoc commands here without interrupting other panes"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "routines": {
+    "herdr_init": "run herdr init my-platform --all",
+    "herdr_attach": "run herdr attach my-platform",
+    "herdr_terminate": "run herdr terminate my-platform --delete"
+  }
+}
+```
+
+#### Single vs Spread Across Multiple meta.json Files
+
+A scene can live entirely in one meta.json, or be spread across the project: the root meta.json and any sub-app meta.json can each contribute `workspaces` to the **same scene name** (a natural fit — herdr workspaces organize by repo/folder, so each app contributes its own workspace). `run herdr init <scene> --all` discovers every meta.json in the project that defines the scene and assembles them into one session, resolving each workspace's `cwd` relative to its own meta.json.
+
+#### Commands
+
+| Command                                   | Purpose                                                              |
+| ----------------------------------------- | -------------------------------------------------------------------- |
+| `run herdr init <scene> [--all] [--reset]` | Build the scene (starts the herdr server headless if needed)         |
+| `run herdr attach <scene>`                | Attach the terminal UI to the scene's session                        |
+| `run herdr terminate <scene> [--delete]`  | Stop the session (`--delete` also removes stored session state)      |
+| `run herdr list`                          | List herdr sessions                                                  |
+
+**Gotcha:** like `run tmux init`, running `init` twice without `--reset` **appends** — you get duplicate workspaces with the same label. Use `--reset` to rebuild a scene cleanly.
+
+herdr needs no configuration of its own: install with `brew install herdr`, and the server is managed automatically. Optional user keybindings/themes live in `~/.config/herdr/config.toml`.
+
+---
+
 ## Environment Variables
 
 ### File Layering
@@ -709,7 +784,7 @@ The `run` tool (`jsr:@ghostmind/run`) reads `meta.json` and orchestrates all com
 - `-c, --cible <env>` — Target environment (`local`, `prod`, `dev`). Sets `ENV` variable, which controls compose file selection via `compose.${ENV}.yaml`
 - `-p, --path <path>` — Run from a specific path
 
-Key capabilities: docker build/push, compose up/down/build, terraform activate/destroy, tmux init/attach/terminate, custom script execution, routine execution, vault import/export.
+Key capabilities: docker build/push, compose up/down/build, terraform activate/destroy, tmux init/attach/terminate, herdr scene init/attach/terminate, custom script execution, routine execution, vault import/export.
 
 ---
 
